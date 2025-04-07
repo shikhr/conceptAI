@@ -6,14 +6,9 @@ import '@xyflow/react/dist/style.css';
 import { useGraphStore } from '../stores/graphStore';
 import { useThemeStore } from '../stores/themeStore';
 
-interface GraphPanelProps {
-  graphData: string[];
-}
-
-export default function GraphPanel({ graphData }: GraphPanelProps) {
-  // Use the graph store
-  const { nodes, edges, onNodesChange, onEdgesChange, setGraphData } =
-    useGraphStore();
+export default function GraphPanel() {
+  // Use the graph store with nodes and edges
+  const { nodes, edges, onNodesChange, onEdgesChange } = useGraphStore();
 
   // Use the theme store
   const { isDarkMode } = useThemeStore();
@@ -34,13 +29,6 @@ export default function GraphPanel({ graphData }: GraphPanelProps) {
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
-
-  // Update graph when data changes
-  useEffect(() => {
-    if (graphData.length) {
-      setGraphData(graphData);
-    }
-  }, [graphData, setGraphData]);
 
   return (
     <div

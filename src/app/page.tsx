@@ -13,10 +13,12 @@ import GraphPanel from '@/components/GraphPanel';
 import TopBar from '@/components/TopBar';
 import { useThemeStore } from '@/stores/themeStore';
 import { useChatStore } from '@/stores/chatStore';
+import { useGraphStore } from '@/stores/graphStore';
 
 export default function Dashboard() {
   const { initTheme } = useThemeStore();
   const { messages, addMessage } = useChatStore();
+  const { setGraphData, getGraphDataString } = useGraphStore();
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
 
@@ -41,9 +43,6 @@ export default function Dashboard() {
     };
   }, [initTheme]);
 
-  // State to manage graph data
-  const [graphData, setGraphData] = useState<string[]>([]);
-
   // Independent state for each panel's collapse state
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
@@ -59,8 +58,9 @@ export default function Dashboard() {
     addMessage(userMessage);
 
     try {
-      // Prepare the current graph data for the API request
-      const currentGraph = graphData.join('\n');
+      // Get current graph data as formatted strings from the store
+      const currentGraphStrings = getGraphDataString();
+      const currentGraph = currentGraphStrings.join('\n');
 
       // Call API with the current messages and user query
       const response = await fetch('/api/chat', {
@@ -81,7 +81,7 @@ export default function Dashboard() {
       const assistantMessage = { role: 'assistant', content: data.response };
       addMessage(assistantMessage);
 
-      // Update graph data
+      // Update graph data only if response contains graph data
       if (data.graph && data.graph.length > 0) {
         setGraphData(data.graph);
       }
@@ -187,7 +187,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="h-full p-3">
-                <GraphPanel graphData={graphData} />
+                <GraphPanel />
               </div>
             )}
           </div>
@@ -277,7 +277,7 @@ export default function Dashboard() {
               </button>
 
               <div className="h-full p-4">
-                <GraphPanel graphData={graphData} />
+                <GraphPanel />
               </div>
             </Panel>
           </PanelGroup>

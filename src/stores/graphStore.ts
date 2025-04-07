@@ -22,6 +22,7 @@ interface GraphState {
   onNodesChange: (changes: NodeChange[]) => void;
   onEdgesChange: (changes: EdgeChange[]) => void;
   resetGraph: () => void;
+  getGraphDataString: () => string[];
 }
 
 export const useGraphStore = create<GraphState>()(
@@ -71,6 +72,20 @@ export const useGraphStore = create<GraphState>()(
             adjacencyList: updatedAdjacencyList,
           });
         }
+      },
+
+      // Convert adjacency list to string array in format "NODE1::NODE2"
+      getGraphDataString: () => {
+        const { adjacencyList } = get();
+        const result: string[] = [];
+
+        Object.entries(adjacencyList).forEach(([sourceNode, connections]) => {
+          connections.forEach((targetNode) => {
+            result.push(`${sourceNode}::${targetNode}`);
+          });
+        });
+
+        return result;
       },
 
       onNodesChange: (changes: NodeChange[]) => {
