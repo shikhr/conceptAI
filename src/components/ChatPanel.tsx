@@ -43,9 +43,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      // Wrap user query in <Query></Query> tags before sending to API
-      const wrappedMessage = `<Query>${input}</Query>`;
-      onSendMessage(wrappedMessage);
+      onSendMessage(input);
       setInput('');
     }
   };

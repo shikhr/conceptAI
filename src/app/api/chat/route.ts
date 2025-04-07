@@ -27,7 +27,14 @@ NODE1::NODE3
 
 export async function POST(request: NextRequest) {
   try {
-    const { messages } = await request.json();
+    const { messages, graph, query } = await request.json();
+
+    const queryMessage = `<Graph>\n${graph}\n</Graph>\n<Query>${query}</Query>`;
+
+    const userQueryMessage = {
+      role: 'user',
+      content: queryMessage,
+    };
 
     // Prepare messages array for the API call
     const apiMessages = [
@@ -38,17 +45,20 @@ export async function POST(request: NextRequest) {
       ...messages.filter(
         (msg: { role: string; content: string }) => msg.role !== 'system'
       ),
+      userQueryMessage,
     ];
 
     // Call Groq API
     const completion = await groq.chat.completions.create({
       messages: apiMessages,
       model: 'meta-llama/llama-4-scout-17b-16e-instruct', // Use appropriate model
-      temperature: 0.5,
+      temperature: 0.4,
       max_tokens: 2048,
     });
 
     const responseContent = completion.choices[0]?.message?.content || '';
+
+    console.log(apiMessages);
 
     // Extract <Response> and <Graph> content
     const responseMatch = responseContent.match(
