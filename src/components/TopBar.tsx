@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, ReactNode } from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 import {
   MoonIcon,
   SunIcon,
@@ -9,7 +11,12 @@ import {
 } from '@heroicons/react/24/outline';
 import { useThemeStore } from '../stores/themeStore';
 
-export default function TopBar() {
+// Define props interface with optional children
+interface TopBarProps {
+  children?: ReactNode;
+}
+
+export default function TopBar({ children }: TopBarProps) {
   // Use the theme store
   const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
 
@@ -28,17 +35,32 @@ export default function TopBar() {
     >
       <div className="flex items-center justify-between">
         {/* Logo/Brand */}
-        <div className="flex items-center space-x-2">
+        <Link
+          href="/landing"
+          className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
+        >
+          <div className="w-6 h-6 relative">
+            <Image
+              src="/logo.svg"
+              alt="ConceptAI Logo"
+              fill
+              sizes="1.5rem"
+              className="object-contain"
+            />
+          </div>
           <span
             className="text-xl font-bold"
             style={{ color: 'var(--accent-foreground)' }}
           >
             Concept AI
           </span>
-        </div>
+        </Link>
 
         {/* Controls */}
         <div className="flex items-center space-x-4">
+          {/* Additional UI elements passed as children */}
+          {children}
+
           {/* Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
