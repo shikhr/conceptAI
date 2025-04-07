@@ -41,12 +41,10 @@ export async function POST(request: NextRequest) {
     // Call Groq API
     const completion = await groq.chat.completions.create({
       messages: apiMessages,
-      model: 'llama3-70b-8192', // Use appropriate model
+      model: 'meta-llama/llama-4-scout-17b-16e-instruct', // Use appropriate model
       temperature: 0.5,
       max_tokens: 2048,
     });
-
-    console.log(apiMessages);
 
     const responseContent = completion.choices[0]?.message?.content || '';
 

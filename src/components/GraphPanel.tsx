@@ -22,8 +22,20 @@ export default function GraphPanel({ graphData }: GraphPanelProps) {
   }, [graphData, setGraphData]);
 
   return (
-    <div className="h-full w-full bg-white rounded-lg shadow">
-      <h2 className="text-xl font-bold p-4 border-b">Concept Graph</h2>
+    <div
+      className="h-full w-full rounded-lg shadow"
+      style={{
+        backgroundColor: 'var(--card-background)',
+        borderColor: 'var(--card-border)',
+        color: 'var(--card-foreground)',
+      }}
+    >
+      <h2
+        className="text-xl font-bold p-4 border-b"
+        style={{ borderColor: 'var(--card-border)' }}
+      >
+        Concept Graph
+      </h2>
       <div className="h-[calc(100%-3.5rem)] w-full">
         {nodes.length > 0 ? (
           <ReactFlow
@@ -35,10 +47,17 @@ export default function GraphPanel({ graphData }: GraphPanelProps) {
           >
             <Controls />
             <MiniMap />
-            <Background />
+            <Background
+              color="var(--graph-background-pattern)"
+              gap={16}
+              size={1}
+            />
           </ReactFlow>
         ) : (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div
+            className="flex items-center justify-center h-full"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
             Concepts will appear here as you learn
           </div>
         )}

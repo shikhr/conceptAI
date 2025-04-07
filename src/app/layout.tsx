@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Hello World App',
-  description: 'A simple Hello World Next.js application',
+  title: 'Concept AI',
+  description: 'An interactive learning tool with concept graph visualization',
 };
 
 export default function RootLayout({
@@ -13,7 +13,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased min-h-screen bg-[var(--background)] text-[var(--foreground)]">
+        {children}
+      </body>
     </html>
   );
 }

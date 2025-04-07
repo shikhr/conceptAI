@@ -1,25 +1,151 @@
 @import 'tailwindcss';
 @plugin "@tailwindcss/typography";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
+  /* Base theme */
   --background: #ffffff;
   --foreground: #171717;
-}
-/* 
-@layer base {
-  ul,
-  ol {
-    list-style: revert;
-    margin: 1.5rem;
-    padding: 0.1rem;
-  }
-} */
 
+  /* Card and panel colors */
+  --card-background: #ffffff;
+  --card-foreground: #171717;
+  --card-border: #e5e7eb;
+
+  /* Graph specific colors */
+  --node-background: #f8fafc;
+  --node-border: #e2e8f0;
+  --node-color: #334155;
+  --node-shadow: rgba(0, 0, 0, 0.1);
+  --node-selected: #3b82f6;
+
+  --edge-color: #64748b;
+  --edge-selected: #3b82f6;
+
+  --graph-background: #ffffff;
+  --graph-background-pattern: #f1f5f9;
+
+  /* Flow controls */
+  --control-background: #ffffff;
+  --control-foreground: #64748b;
+  --control-border: #e2e8f0;
+
+  /* Utility colors */
+  --muted-background: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent-background: #f1f5f9;
+  --accent-foreground: #3b82f6;
+}
+
+/* Dark mode styles - these apply both to system preference and manual toggle */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light-mode) {
+    /* Base theme */
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    /* Card and panel colors */
+    --card-background: #1a1a1a;
+    --card-foreground: #ededed;
+    --card-border: #2a2a2a;
+
+    /* Graph specific colors */
+    --node-background: #1e293b;
+    --node-border: #334155;
+    --node-color: #e2e8f0;
+    --node-shadow: rgba(0, 0, 0, 0.5);
+    --node-selected: #3b82f6;
+
+    --edge-color: #94a3b8;
+    --edge-selected: #3b82f6;
+
+    --graph-background: #0f172a;
+    --graph-background-pattern: #1e293b;
+
+    /* Flow controls */
+    --control-background: #1e293b;
+    --control-foreground: #94a3b8;
+    --control-border: #334155;
+
+    /* Utility colors */
+    --muted-background: #1e293b;
+    --muted-foreground: #94a3b8;
+    --accent-background: #1e293b;
+    --accent-foreground: #60a5fa;
   }
+}
+
+/* Manual dark mode toggle - overrides system preference */
+.dark-mode {
+  /* Base theme */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+
+  /* Card and panel colors */
+  --card-background: #1a1a1a;
+  --card-foreground: #ededed;
+  --card-border: #2a2a2a;
+
+  /* Graph specific colors */
+  --node-background: #1e293b;
+  --node-border: #334155;
+  --node-color: #e2e8f0;
+  --node-shadow: rgba(0, 0, 0, 0.5);
+  --node-selected: #3b82f6;
+
+  --edge-color: #94a3b8;
+  --edge-selected: #3b82f6;
+
+  --graph-background: #0f172a;
+  --graph-background-pattern: #1e293b;
+
+  /* Flow controls */
+  --control-background: #1e293b;
+  --control-foreground: #94a3b8;
+  --control-border: #334155;
+
+  /* Utility colors */
+  --muted-background: #1e293b;
+  --muted-foreground: #94a3b8;
+  --accent-background: #1e293b;
+  --accent-foreground: #60a5fa;
+}
+
+/* Manual light mode toggle - overrides system preference */
+.light-mode {
+  /* Base theme */
+  --background: #ffffff;
+  --foreground: #171717;
+
+  /* Card and panel colors */
+  --card-background: #ffffff;
+  --card-foreground: #171717;
+  --card-border: #e5e7eb;
+
+  /* Graph specific colors */
+  --node-background: #f8fafc;
+  --node-border: #e2e8f0;
+  --node-color: #334155;
+  --node-shadow: rgba(0, 0, 0, 0.1);
+  --node-selected: #3b82f6;
+
+  --edge-color: #64748b;
+  --edge-selected: #3b82f6;
+
+  --graph-background: #ffffff;
+  --graph-background-pattern: #f1f5f9;
+
+  /* Flow controls */
+  --control-background: #ffffff;
+  --control-foreground: #64748b;
+  --control-border: #e2e8f0;
+
+  /* Utility colors */
+  --muted-background: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent-background: #f1f5f9;
+  --accent-foreground: #3b82f6;
 }
 
 body {
@@ -36,4 +162,51 @@ body {
 /* Transition styles for smooth resizing and collapsing */
 .transition-width {
   transition: width 0.3s ease-in-out;
+}
+
+/* Override ReactFlow default styles to support light/dark mode */
+.react-flow__node {
+  background-color: var(--node-background);
+  color: var(--node-color);
+  border-color: var(--node-border);
+  box-shadow: 0 2px 4px var(--node-shadow);
+}
+
+.react-flow__node.selected,
+.react-flow__node:focus,
+.react-flow__node:focus-visible {
+  border-color: var(--node-selected);
+}
+
+.react-flow__edge-path {
+  stroke: var(--edge-color);
+}
+
+.react-flow__edge.selected .react-flow__edge-path,
+.react-flow__edge:focus .react-flow__edge-path,
+.react-flow__edge:focus-visible .react-flow__edge-path {
+  stroke: var(--edge-selected);
+}
+
+.react-flow__controls {
+  background: var(--control-background);
+  border-color: var(--control-border);
+}
+
+.react-flow__controls-button {
+  background: var(--control-background);
+  color: var(--control-foreground);
+  border-color: var(--control-border);
+}
+
+.react-flow__minimap {
+  background-color: var(--control-background);
+}
+
+.react-flow__background {
+  background-color: var(--graph-background);
+}
+
+.react-flow__background-pattern {
+  color: var(--graph-background-pattern);
 }

@@ -51,9 +51,15 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto mb-4 p-4 bg-white rounded-lg shadow">
+      <div
+        className="flex-1 overflow-y-auto mb-4 p-4 rounded-lg shadow"
+        style={{ backgroundColor: 'var(--card-background)' }}
+      >
         {messages.length === 0 ? (
-          <div className="flex items-center justify-center h-full text-gray-500">
+          <div
+            className="flex items-center justify-center h-full"
+            style={{ color: 'var(--muted-foreground)' }}
+          >
             Start a conversation with the AI Tutor
           </div>
         ) : (
@@ -66,14 +72,24 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                 }`}
               >
                 <div
-                  className={` p-3 rounded-lg ${
+                  className={`p-3 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-blue-500 text-white rounded-br-none max-w-[80%]'
-                      : 'bg-gray-200 text-gray-800 rounded-bl-none'
+                      ? 'rounded-br-none max-w-[80%]'
+                      : 'rounded-bl-none'
                   }`}
+                  style={{
+                    backgroundColor:
+                      message.role === 'user'
+                        ? 'var(--accent-foreground)'
+                        : 'var(--muted-background)',
+                    color:
+                      message.role === 'user'
+                        ? 'white'
+                        : 'var(--card-foreground)',
+                  }}
                 >
                   {message.role === 'assistant' ? (
-                    <div className="prose prose-slate">
+                    <div className="prose prose-slate dark:prose-invert">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw]}
@@ -98,12 +114,29 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
-          className="flex-1 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-800"
+          className="flex-1 p-3 rounded-lg focus:outline-none focus:ring-2"
+          style={
+            {
+              backgroundColor: 'var(--card-background)',
+              color: 'var(--card-foreground)',
+              borderColor: 'var(--card-border)',
+              '--tw-ring-color': 'var(--accent-foreground)',
+            } as React.CSSProperties
+          }
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="p-3 bg-blue-500 text-white rounded-lg disabled:bg-blue-300 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-700"
+          className="p-3 rounded-lg transition-colors focus:outline-none focus:ring-2"
+          style={
+            {
+              backgroundColor: !input.trim()
+                ? 'var(--accent-background)'
+                : 'var(--accent-foreground)',
+              color: !input.trim() ? 'var(--muted-foreground)' : 'white',
+              '--tw-ring-color': 'var(--accent-foreground)',
+            } as React.CSSProperties
+          }
         >
           <PaperAirplaneIcon className="h-5 w-5" />
         </button>
