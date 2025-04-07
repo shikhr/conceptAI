@@ -2,6 +2,9 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 
 interface Message {
   role: string;
@@ -35,6 +38,8 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   // Function to extract content within <Response> tags
   const extractResponse = (content: string) => {
     const responseMatch = content.match(/<Response>([\s\S]*?)<\/Response>/);
+    // If response is found within tags, trim and return it
+    // Otherwise, check if content itself is already formatted (doesn't have tags)
     return responseMatch ? responseMatch[1].trim() : content;
   };
 
@@ -61,15 +66,24 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                 }`}
               >
                 <div
-                  className={`max-w-[80%] p-3 rounded-lg ${
+                  className={` p-3 rounded-lg ${
                     message.role === 'user'
-                      ? 'bg-blue-500 text-white rounded-br-none'
+                      ? 'bg-blue-500 text-white rounded-br-none max-w-[80%]'
                       : 'bg-gray-200 text-gray-800 rounded-bl-none'
                   }`}
                 >
-                  {message.role === 'assistant'
-                    ? extractResponse(message.content)
-                    : extractQuery(message.content)}
+                  {message.role === 'assistant' ? (
+                    <div className="prose prose-slate">
+                      <ReactMarkdown
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                      >
+                        {extractResponse(message.content)}
+                      </ReactMarkdown>
+                    </div>
+                  ) : (
+                    extractQuery(message.content)
+                  )}
                 </div>
               </div>
             ))}

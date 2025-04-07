@@ -1,9 +1,19 @@
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 :root {
   --background: #ffffff;
   --foreground: #171717;
 }
+/* 
+@layer base {
+  ul,
+  ol {
+    list-style: revert;
+    margin: 1.5rem;
+    padding: 0.1rem;
+  }
+} */
 
 @media (prefers-color-scheme: dark) {
   :root {
