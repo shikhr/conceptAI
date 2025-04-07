@@ -2,25 +2,25 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
-import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
+import {
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+  ImperativePanelHandle,
+} from 'react-resizable-panels';
 import ChatPanel from '@/components/ChatPanel';
 import GraphPanel from '@/components/GraphPanel';
 import TopBar from '@/components/TopBar';
-import Link from 'next/link';
-import Image from 'next/image';
 import { useThemeStore } from '@/stores/themeStore';
 
 export default function Dashboard() {
-  const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
-  const [isVisible, setIsVisible] = useState(false);
+  const { initTheme } = useThemeStore();
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
 
   useEffect(() => {
     // Initialize theme based on saved preference or system preference
     initTheme();
-    // Set visibility for animations
-    setIsVisible(true);
 
     // Check if device is mobile
     const checkMobile = () => {
@@ -50,8 +50,8 @@ export default function Dashboard() {
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
 
   // References to Panel components
-  const leftPanelRef = useRef<any>(null);
-  const rightPanelRef = useRef<any>(null);
+  const leftPanelRef = useRef<ImperativePanelHandle>(null);
+  const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
@@ -244,11 +244,9 @@ export default function Dashboard() {
             <PanelResizeHandle
               className={`${
                 isLeftPanelCollapsed || isRightPanelCollapsed ? 'w-0' : 'w-1.5'
-              } transition-colors`}
+              } transition-colors hover:bg-accent-foreground active:bg-accent-foreground`}
               style={{
                 backgroundColor: 'var(--card-border)',
-                '&:hover': { backgroundColor: 'var(--accent-foreground)' },
-                '&:active': { backgroundColor: 'var(--accent-foreground)' },
               }}
             />
 

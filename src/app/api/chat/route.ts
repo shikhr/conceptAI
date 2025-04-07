@@ -35,7 +35,9 @@ export async function POST(request: NextRequest) {
         role: 'system',
         content: STATIC_SYSTEM_MESSAGE,
       },
-      ...messages.filter((msg: any) => msg.role !== 'system'),
+      ...messages.filter(
+        (msg: { role: string; content: string }) => msg.role !== 'system'
+      ),
     ];
 
     // Call Groq API
@@ -54,14 +56,15 @@ export async function POST(request: NextRequest) {
     );
     const graphMatch = responseContent.match(/<Graph>([\s\S]*?)<\/Graph>/);
 
-    const response = responseMatch ? responseMatch[1].trim() : '';
+    // Parse the response content from the match
+    const responseText = responseMatch ? responseMatch[1].trim() : '';
     const graphText = graphMatch ? graphMatch[1].trim() : '';
     const graphLines = graphText
       .split('\n')
       .filter((line) => line.includes('::') && !line.startsWith('//'));
 
     return NextResponse.json({
-      response: responseContent,
+      response: responseText,
       graph: graphLines,
     });
   } catch (error) {

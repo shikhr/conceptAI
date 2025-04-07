@@ -9,7 +9,6 @@ import { useThemeStore } from '@/stores/themeStore';
 export default function Landing() {
   const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
   const [isVisible, setIsVisible] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     // Initialize theme based on saved preference or system preference
@@ -17,10 +16,6 @@ export default function Landing() {
     // Set visibility for animations
     setIsVisible(true);
   }, [initTheme]);
-
-  const toggleMobileMenu = () => {
-    setIsMobileMenuOpen(!isMobileMenuOpen);
-  };
 
   return (
     <div
