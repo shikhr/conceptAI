@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ConceptAI: Intelligent Concept Mapping with LLM Integration
+
+An interactive knowledge visualization tool that merges graph-based concept mapping with LLM-powered learning assistance.
+
+![ConceptAI](https://i.imgur.com/4FyIXax.png)
+
+## Overview
+
+ConceptAI helps you build and visualize conceptual knowledge networks while leveraging AI to deepen your understanding. The application combines interactive graph visualization with natural language processing to create a powerful learning tool.
+
+## Key Features
+
+### 📊 Visual Concept Mapping
+
+- **Interactive Graph Visualization**: Build and manipulate knowledge networks using a dynamic, force-directed graph layout
+- **Automatic Layout**: Concepts are automatically arranged in a logical, hierarchical structure
+- **Light/Dark Mode**: Comfortable viewing in any environment
+
+### 🧠 LLM-Powered Learning
+
+- **AI-Assisted Exploration**: Ask questions about concepts and get intelligent responses
+- **Contextual Understanding**: The system understands the relationships between concepts
+- **Concept Generation**: Get suggestions for related concepts to expand your knowledge network
+
+### 🔄 Real-time Interaction
+
+- **Dynamic Graph Updates**: See your knowledge network grow in real-time as you learn
+- **Bidirectional Learning**: Ask questions about the graph or build the graph through conversations
+
+## Technology Stack
+
+- **Frontend**: Next.js, React, TailwindCSS
+- **Graph Visualization**: XYFlow/ReactFlow
+- **Language Models**: Groq API Integration
+- **Layout Algorithm**: Dagre for hierarchical graph layouts
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (copy `.env.example` to `.env` and add your Groq API key)
+4. Run the development server: `npm run dev`
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Usage
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+1. Start by asking a question in the chat panel
+2. Explore the generated concepts in the graph view
+3. Click on nodes to see more information about each concept
+4. Continue the conversation to expand your knowledge network
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Future Enhancements
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Export/import of knowledge graphs
+- Collaborative concept mapping
+- Integration with additional learning resources
+- Mobile-optimized interface
 
-## Learn More
+## License
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[MIT](LICENSE)

@@ -42,6 +42,7 @@ export default function GraphPanel({ graphData }: GraphPanelProps) {
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             fitView
+            proOptions={{ hideAttribution: true }}
             colorMode={isDarkMode ? 'dark' : 'light'}
           >
             <Controls />
