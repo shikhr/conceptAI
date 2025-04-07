@@ -112,9 +112,11 @@ export const processGraphData = (
       // Create new node with default position (will be updated by layout)
       nodesArray.push({
         id: nodeId,
+        type: 'concept',
         data: { label: nodeName },
         position: { x: 0, y: 0 },
-        style: { width: NODE_WIDTH, height: NODE_HEIGHT },
+        width: NODE_WIDTH,
+        height: NODE_HEIGHT,
       });
     }
 

@@ -28,21 +28,13 @@ export default function GraphPanel({ graphData }: GraphPanelProps) {
   return (
     <div
       className="h-full w-full rounded-lg shadow"
-      style={
-        {
-          // backgroundColor: 'var(--card-background)',
-          // borderColor: 'var(--card-border)',
-          // color: 'var(--card-foreground)',
-        }
-      }
+      style={{
+        backgroundColor: 'var(--card-background)',
+        borderColor: 'var(--card-border)',
+        color: 'var(--card-foreground)',
+      }}
     >
-      {/* <h2
-        className="text-xl font-bold p-4 border-b"
-        style={{ borderColor: 'var(--card-border)' }}
-      >
-        Concept Graph
-      </h2> */}
-      <div className="h-[calc(100%-3.5rem)] w-full">
+      <div className="h-full w-full">
         {nodes.length > 0 ? (
           <ReactFlow
             nodes={nodes}

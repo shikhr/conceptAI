@@ -1,7 +1,7 @@
 import { Node, Edge, Position } from '@xyflow/react';
 import dagre from '@dagrejs/dagre';
 
-export const NODE_WIDTH = 150;
+export const NODE_WIDTH = 160;
 export const NODE_HEIGHT = 40;
 
 /**
@@ -48,8 +48,8 @@ export const getLayoutedElements = (
     return {
       ...node,
       position: {
-        x: nodeWithPosition.x - NODE_WIDTH / 2,
-        y: nodeWithPosition.y - NODE_HEIGHT / 2,
+        x: nodeWithPosition.x - nodeWithPosition.width / 2,
+        y: nodeWithPosition.y - nodeWithPosition.height / 2,
       },
       // Set connection points based on layout direction
       sourcePosition: direction === 'LR' ? Position.Right : Position.Bottom,
