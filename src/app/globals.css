@@ -27,3 +27,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Cursor styles for panel resizing */
+.resize-cursor {
+  cursor: col-resize !important;
+}
+
+/* Transition styles for smooth resizing and collapsing */
+.transition-width {
+  transition: width 0.3s ease-in-out;
+}

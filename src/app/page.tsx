@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+import { Panel, PanelGroup, PanelResizeHandle } from 'react-resizable-panels';
 import ChatPanel from '@/components/ChatPanel';
 import GraphPanel from '@/components/GraphPanel';
 
@@ -10,6 +12,14 @@ export default function Home() {
     Array<{ role: string; content: string }>
   >([]);
   const [graphData, setGraphData] = useState<string[]>([]);
+
+  // Independent state for each panel's collapse state
+  const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
+
+  // References to Panel components
+  const leftPanelRef = useRef<any>(null);
+  const rightPanelRef = useRef<any>(null);
 
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
@@ -58,17 +68,120 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100">
-      {/* Left panel - Chat */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full p-4 overflow-auto border-r border-gray-300">
-        <ChatPanel messages={chatHistory} onSendMessage={handleSendMessage} />
-      </div>
+  // Simple toggle functions that only affect their respective panel
+  const toggleLeftPanel = () => {
+    if (isLeftPanelCollapsed) {
+      // If collapsed, expand it
+      leftPanelRef.current?.expand();
+      setIsLeftPanelCollapsed(false);
+    } else {
+      // If right panel is already collapsed, expand it instead of collapsing this one
+      if (isRightPanelCollapsed) {
+        rightPanelRef.current?.expand();
+        setIsRightPanelCollapsed(false);
+      } else {
+        // Otherwise collapse this panel
+        leftPanelRef.current?.collapse();
+        setIsLeftPanelCollapsed(true);
+      }
+    }
+  };
 
-      {/* Right panel - Graph */}
-      <div className="w-full md:w-1/2 h-1/2 md:h-full p-4 overflow-auto">
-        <GraphPanel graphData={graphData} />
-      </div>
+  const toggleRightPanel = () => {
+    if (isRightPanelCollapsed) {
+      // If collapsed, expand it
+      rightPanelRef.current?.expand();
+      setIsRightPanelCollapsed(false);
+    } else {
+      // If left panel is already collapsed, expand it instead of collapsing this one
+      if (isLeftPanelCollapsed) {
+        leftPanelRef.current?.expand();
+        setIsLeftPanelCollapsed(false);
+      } else {
+        // Otherwise collapse this panel
+        rightPanelRef.current?.collapse();
+        setIsRightPanelCollapsed(true);
+      }
+    }
+  };
+
+  return (
+    <div className="h-screen bg-gray-100">
+      <PanelGroup direction="horizontal" className="h-full">
+        {/* Left panel - Chat */}
+        <Panel
+          defaultSize={50}
+          collapsible={true}
+          collapsedSize={0}
+          ref={leftPanelRef}
+          onCollapse={() => {
+            setIsLeftPanelCollapsed(true);
+          }}
+          onExpand={() => {
+            setIsLeftPanelCollapsed(false);
+          }}
+          className="relative"
+          minSize={20}
+        >
+          {/* Toggle button - always in the same position regardless of collapse state */}
+          <button
+            onClick={toggleLeftPanel}
+            className={`absolute top-2 right-0 z-10 bg-blue-500 text-white p-1 rounded-l-md`}
+            aria-label={
+              isLeftPanelCollapsed ? 'Expand left panel' : 'Collapse left panel'
+            }
+          >
+            <ChevronLeftIcon className="h-5 w-5" />
+          </button>
+
+          <div className="h-full p-4">
+            <ChatPanel
+              messages={chatHistory}
+              onSendMessage={handleSendMessage}
+            />
+          </div>
+        </Panel>
+
+        {/* Resizer */}
+        <PanelResizeHandle
+          className={`${
+            isLeftPanelCollapsed || isRightPanelCollapsed ? 'w-0' : 'w-1.5'
+          } bg-gray-300 hover:bg-blue-500 active:bg-blue-700 transition-colors`}
+        />
+
+        {/* Right panel - Graph */}
+        <Panel
+          defaultSize={50}
+          collapsible={true}
+          collapsedSize={0}
+          ref={rightPanelRef}
+          onCollapse={() => {
+            setIsRightPanelCollapsed(true);
+          }}
+          onExpand={() => {
+            setIsRightPanelCollapsed(false);
+          }}
+          className="relative"
+          minSize={20}
+        >
+          {/* Toggle button - always in the same position regardless of collapse state */}
+          <button
+            onClick={toggleRightPanel}
+            className={`absolute top-2 left-0 z-10 bg-blue-500 text-white p-1 rounded-r-md`}
+            aria-label={
+              isRightPanelCollapsed
+                ? 'Expand right panel'
+                : 'Collapse right panel'
+            }
+          >
+            <ChevronRightIcon className="h-5 w-5" />
+          </button>
+
+          <div className="h-full p-4">
+            <GraphPanel graphData={graphData} />
+          </div>
+        </Panel>
+      </PanelGroup>
     </div>
   );
 }
