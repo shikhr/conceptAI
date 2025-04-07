@@ -68,14 +68,14 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
               <div
                 key={index}
                 className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
+                  message.role === 'user' ? 'justify-end' : 'justify-center'
                 }`}
               >
                 <div
                   className={`p-3 rounded-lg ${
                     message.role === 'user'
                       ? 'rounded-br-none max-w-[80%]'
-                      : 'rounded-bl-none'
+                      : 'rounded-bl-none max-w-none'
                   }`}
                   style={{
                     backgroundColor:
@@ -89,7 +89,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                   }}
                 >
                   {message.role === 'assistant' ? (
-                    <div className="prose prose-slate dark:prose-invert">
+                    <div className="max-w-5xl prose prose-slate dark:prose-invert">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw]}

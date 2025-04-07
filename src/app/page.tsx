@@ -130,7 +130,7 @@ export default function Home() {
               setIsLeftPanelCollapsed(false);
             }}
             className="relative"
-            minSize={20}
+            minSize={30}
           >
             {/* Toggle button - always in the same position regardless of collapse state */}
             <button
@@ -182,7 +182,7 @@ export default function Home() {
               setIsRightPanelCollapsed(false);
             }}
             className="relative"
-            minSize={20}
+            minSize={30}
           >
             {/* Toggle button - always in the same position regardless of collapse state */}
             <button

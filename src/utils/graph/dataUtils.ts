@@ -1,4 +1,4 @@
-import { Node, Edge } from 'reactflow';
+import { Node, Edge } from '@xyflow/react';
 import { NODE_WIDTH, NODE_HEIGHT } from './layoutUtils';
 
 // Adjacency list representation of the graph

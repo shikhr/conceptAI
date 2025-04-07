@@ -6,7 +6,7 @@ import {
   EdgeChange,
   applyNodeChanges,
   applyEdgeChanges,
-} from 'reactflow';
+} from '@xyflow/react';
 import { AdjacencyList, processGraphData } from '../utils/graph/dataUtils';
 import { getLayoutedElements } from '../utils/graph/layoutUtils';
 
