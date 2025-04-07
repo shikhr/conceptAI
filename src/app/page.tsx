@@ -12,9 +12,11 @@ import ChatPanel from '@/components/ChatPanel';
 import GraphPanel from '@/components/GraphPanel';
 import TopBar from '@/components/TopBar';
 import { useThemeStore } from '@/stores/themeStore';
+import { useChatStore } from '@/stores/chatStore';
 
 export default function Dashboard() {
   const { initTheme } = useThemeStore();
+  const { messages, addMessage } = useChatStore();
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
 
@@ -39,10 +41,7 @@ export default function Dashboard() {
     };
   }, [initTheme]);
 
-  // State to manage chat history and graph data
-  const [chatHistory, setChatHistory] = useState<
-    Array<{ role: string; content: string }>
-  >([]);
+  // State to manage graph data
   const [graphData, setGraphData] = useState<string[]>([]);
 
   // Independent state for each panel's collapse state
@@ -56,19 +55,19 @@ export default function Dashboard() {
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
     // Add user message to chat history
-    const newChatHistory = [...chatHistory, { role: 'user', content: message }];
-    setChatHistory(newChatHistory);
+    const userMessage = { role: 'user', content: message };
+    addMessage(userMessage);
 
     try {
       // Prepare the current graph data for the API request
       const currentGraph = graphData.join('\n');
 
-      // Call API with the current graph and user query
+      // Call API with the current messages and user query
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          messages: newChatHistory,
+          messages: [...messages, userMessage],
           graph: currentGraph,
           query: message,
         }),
@@ -79,10 +78,8 @@ export default function Dashboard() {
       const data = await response.json();
 
       // Update chat history with assistant's response
-      setChatHistory([
-        ...newChatHistory,
-        { role: 'assistant', content: data.response },
-      ]);
+      const assistantMessage = { role: 'assistant', content: data.response };
+      addMessage(assistantMessage);
 
       // Update graph data
       if (data.graph && data.graph.length > 0) {
@@ -90,13 +87,10 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error:', error);
-      setChatHistory([
-        ...newChatHistory,
-        {
-          role: 'assistant',
-          content: 'Sorry, there was an error processing your request.',
-        },
-      ]);
+      addMessage({
+        role: 'assistant',
+        content: 'Sorry, there was an error processing your request.',
+      });
     }
   };
 
@@ -187,7 +181,7 @@ export default function Dashboard() {
             {activeView === 'chat' ? (
               <div className="h-full p-3">
                 <ChatPanel
-                  messages={chatHistory}
+                  messages={messages}
                   onSendMessage={handleSendMessage}
                 />
               </div>
@@ -234,7 +228,7 @@ export default function Dashboard() {
 
               <div className="h-full p-4">
                 <ChatPanel
-                  messages={chatHistory}
+                  messages={messages}
                   onSendMessage={handleSendMessage}
                 />
               </div>
