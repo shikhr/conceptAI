@@ -19,6 +19,21 @@ interface ChatPanelProps {
 export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Check for mobile view
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
+  }, []);
 
   // Auto-scroll to the bottom when new messages arrive
   useEffect(() => {
@@ -52,7 +67,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   return (
     <div className="flex flex-col h-full">
       <div
-        className="flex-1 overflow-y-auto mb-4 p-4 rounded-lg shadow"
+        className={`flex-1 overflow-y-auto ${
+          isMobile ? 'mb-2 p-2' : 'mb-4 p-4'
+        } rounded-lg shadow`}
         style={{ backgroundColor: 'var(--card-background)' }}
       >
         {messages.length === 0 ? (
@@ -60,10 +77,12 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             className="flex items-center justify-center h-full"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            Start a conversation with the AI Tutor
+            <span className={isMobile ? 'text-sm' : 'text-base'}>
+              Start a conversation with the AI Tutor
+            </span>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className={`space-y-${isMobile ? '2' : '4'}`}>
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -72,7 +91,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                 }`}
               >
                 <div
-                  className={`p-3 rounded-lg ${
+                  className={`${isMobile ? 'p-2' : 'p-3'} rounded-lg ${
                     message.role === 'user'
                       ? 'rounded-br-none max-w-[80%]'
                       : 'rounded-bl-none max-w-none'
@@ -89,7 +108,11 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                   }}
                 >
                   {message.role === 'assistant' ? (
-                    <div className="max-w-5xl prose prose-slate dark:prose-invert">
+                    <div
+                      className={`max-w-5xl prose prose-slate dark:prose-invert ${
+                        isMobile ? 'prose-sm' : ''
+                      }`}
+                    >
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw]}
@@ -98,7 +121,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    extractQuery(message.content)
+                    <div className={isMobile ? 'text-sm' : 'text-base'}>
+                      {extractQuery(message.content)}
+                    </div>
                   )}
                 </div>
               </div>
@@ -114,7 +139,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
-          className="flex-1 p-3 rounded-lg focus:outline-none focus:ring-2"
+          className={`flex-1 ${
+            isMobile ? 'p-2 text-sm' : 'p-3 text-base'
+          } rounded-lg focus:outline-none focus:ring-2`}
           style={
             {
               backgroundColor: 'var(--card-background)',
@@ -127,7 +154,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
         <button
           type="submit"
           disabled={!input.trim()}
-          className="p-3 rounded-lg transition-colors focus:outline-none focus:ring-2"
+          className={`${
+            isMobile ? 'p-2' : 'p-3'
+          } rounded-lg transition-colors focus:outline-none focus:ring-2`}
           style={
             {
               backgroundColor: !input.trim()
@@ -138,7 +167,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             } as React.CSSProperties
           }
         >
-          <PaperAirplaneIcon className="h-5 w-5" />
+          <PaperAirplaneIcon
+            className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`}
+          />
         </button>
       </form>
     </div>

@@ -13,12 +13,30 @@ import { useThemeStore } from '@/stores/themeStore';
 export default function Dashboard() {
   const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
   const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
 
   useEffect(() => {
     // Initialize theme based on saved preference or system preference
     initTheme();
     // Set visibility for animations
     setIsVisible(true);
+
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Initial check
+    checkMobile();
+
+    // Add event listener for window resize
+    window.addEventListener('resize', checkMobile);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+    };
   }, [initTheme]);
 
   // State to manage chat history and graph data
@@ -82,8 +100,18 @@ export default function Dashboard() {
     }
   };
 
+  // Toggle function for mobile view
+  const toggleMobileView = () => {
+    setActiveView(activeView === 'chat' ? 'graph' : 'chat');
+  };
+
   // Simple toggle functions that only affect their respective panel
   const toggleLeftPanel = () => {
+    if (isMobile) {
+      toggleMobileView();
+      return;
+    }
+
     if (isLeftPanelCollapsed) {
       // If collapsed, expand it
       leftPanelRef.current?.expand();
@@ -102,6 +130,11 @@ export default function Dashboard() {
   };
 
   const toggleRightPanel = () => {
+    if (isMobile) {
+      toggleMobileView();
+      return;
+    }
+
     if (isRightPanelCollapsed) {
       // If collapsed, expand it
       rightPanelRef.current?.expand();
@@ -127,98 +160,136 @@ export default function Dashboard() {
       {/* Add TopBar component */}
       <TopBar />
 
+      {/* Mobile View Toggle */}
+      {isMobile && (
+        <div
+          className="flex justify-center p-2 bg-opacity-80"
+          style={{ backgroundColor: 'var(--card-background)' }}
+        >
+          <button
+            onClick={toggleMobileView}
+            className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            style={{
+              backgroundColor: 'var(--accent-foreground)',
+              color: 'white',
+            }}
+          >
+            Switch to {activeView === 'chat' ? 'Graph' : 'Chat'}
+          </button>
+        </div>
+      )}
+
       {/* Main content */}
       <div className="flex-1 overflow-hidden">
-        <PanelGroup direction="horizontal" className="h-full">
-          {/* Left panel - Chat */}
-          <Panel
-            defaultSize={50}
-            collapsible={true}
-            collapsedSize={0}
-            ref={leftPanelRef}
-            onCollapse={() => {
-              setIsLeftPanelCollapsed(true);
-            }}
-            onExpand={() => {
-              setIsLeftPanelCollapsed(false);
-            }}
-            className="relative"
-            minSize={30}
-          >
-            {/* Toggle button - always in the same position regardless of collapse state */}
-            <button
-              onClick={toggleLeftPanel}
-              className="absolute top-2 right-0 z-10 p-1 rounded-l-md"
-              style={{
-                backgroundColor: 'var(--accent-foreground)',
-                color: 'white',
+        {isMobile ? (
+          // Mobile layout - single view at a time
+          <div className="h-full">
+            {activeView === 'chat' ? (
+              <div className="h-full p-3">
+                <ChatPanel
+                  messages={chatHistory}
+                  onSendMessage={handleSendMessage}
+                />
+              </div>
+            ) : (
+              <div className="h-full p-3">
+                <GraphPanel graphData={graphData} />
+              </div>
+            )}
+          </div>
+        ) : (
+          // Desktop layout - panel group with resizable panels
+          <PanelGroup direction="horizontal" className="h-full">
+            {/* Left panel - Chat */}
+            <Panel
+              defaultSize={50}
+              collapsible={true}
+              collapsedSize={0}
+              ref={leftPanelRef}
+              onCollapse={() => {
+                setIsLeftPanelCollapsed(true);
               }}
-              aria-label={
-                isLeftPanelCollapsed
-                  ? 'Expand left panel'
-                  : 'Collapse left panel'
-              }
-            >
-              <ChevronLeftIcon className="h-5 w-5" />
-            </button>
-
-            <div className="h-full p-4">
-              <ChatPanel
-                messages={chatHistory}
-                onSendMessage={handleSendMessage}
-              />
-            </div>
-          </Panel>
-
-          {/* Resizer */}
-          <PanelResizeHandle
-            className={`${
-              isLeftPanelCollapsed || isRightPanelCollapsed ? 'w-0' : 'w-1.5'
-            } transition-colors`}
-            style={{
-              backgroundColor: 'var(--card-border)',
-              '&:hover': { backgroundColor: 'var(--accent-foreground)' },
-              '&:active': { backgroundColor: 'var(--accent-foreground)' },
-            }}
-          />
-
-          {/* Right panel - Graph */}
-          <Panel
-            defaultSize={50}
-            collapsible={true}
-            collapsedSize={0}
-            ref={rightPanelRef}
-            onCollapse={() => {
-              setIsRightPanelCollapsed(true);
-            }}
-            onExpand={() => {
-              setIsRightPanelCollapsed(false);
-            }}
-            className="relative"
-            minSize={30}
-          >
-            {/* Toggle button - always in the same position regardless of collapse state */}
-            <button
-              onClick={toggleRightPanel}
-              className="absolute top-2 left-0 z-10 p-1 rounded-r-md"
-              style={{
-                backgroundColor: 'var(--accent-foreground)',
-                color: 'white',
+              onExpand={() => {
+                setIsLeftPanelCollapsed(false);
               }}
-              aria-label={
-                isRightPanelCollapsed
-                  ? 'Expand right panel'
-                  : 'Collapse right panel'
-              }
+              className="relative"
+              minSize={30}
             >
-              <ChevronRightIcon className="h-5 w-5" />
-            </button>
+              {/* Toggle button - always in the same position regardless of collapse state */}
+              <button
+                onClick={toggleLeftPanel}
+                className="absolute top-2 right-0 z-10 p-1 rounded-l-md"
+                style={{
+                  backgroundColor: 'var(--accent-foreground)',
+                  color: 'white',
+                }}
+                aria-label={
+                  isLeftPanelCollapsed
+                    ? 'Expand left panel'
+                    : 'Collapse left panel'
+                }
+              >
+                <ChevronLeftIcon className="h-5 w-5" />
+              </button>
 
-            <div className="h-full p-4">
-              <GraphPanel graphData={graphData} />
-            </div>
-          </Panel>
-        </PanelGroup>
+              <div className="h-full p-4">
+                <ChatPanel
+                  messages={chatHistory}
+                  onSendMessage={handleSendMessage}
+                />
+              </div>
+            </Panel>
+
+            {/* Resizer */}
+            <PanelResizeHandle
+              className={`${
+                isLeftPanelCollapsed || isRightPanelCollapsed ? 'w-0' : 'w-1.5'
+              } transition-colors`}
+              style={{
+                backgroundColor: 'var(--card-border)',
+                '&:hover': { backgroundColor: 'var(--accent-foreground)' },
+                '&:active': { backgroundColor: 'var(--accent-foreground)' },
+              }}
+            />
+
+            {/* Right panel - Graph */}
+            <Panel
+              defaultSize={50}
+              collapsible={true}
+              collapsedSize={0}
+              ref={rightPanelRef}
+              onCollapse={() => {
+                setIsRightPanelCollapsed(true);
+              }}
+              onExpand={() => {
+                setIsRightPanelCollapsed(false);
+              }}
+              className="relative"
+              minSize={30}
+            >
+              {/* Toggle button - always in the same position regardless of collapse state */}
+              <button
+                onClick={toggleRightPanel}
+                className="absolute top-2 left-0 z-10 p-1 rounded-r-md"
+                style={{
+                  backgroundColor: 'var(--accent-foreground)',
+                  color: 'white',
+                }}
+                aria-label={
+                  isRightPanelCollapsed
+                    ? 'Expand right panel'
+                    : 'Collapse right panel'
+                }
+              >
+                <ChevronRightIcon className="h-5 w-5" />
+              </button>
+
+              <div className="h-full p-4">
+                <GraphPanel graphData={graphData} />
+              </div>
+            </Panel>
+          </PanelGroup>
+        )}
       </div>
     </div>
   );
