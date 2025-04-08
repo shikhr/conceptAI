@@ -29,7 +29,7 @@ interface ChatState {
   // Actions
   addChat: (title?: string) => string;
   deleteChat: (chatId: string) => void;
-  setActiveChat: (chatId: string) => void;
+  setActiveChat: (chatId: string | null) => void;
   addMessage: (message: Message, chatId?: string) => void;
   setMessages: (messages: Message[], chatId?: string) => void;
   updateChatTitle: (chatId: string, title: string) => void;
@@ -84,7 +84,7 @@ export const useChatStore = create<ChatState>()(
         });
       },
 
-      setActiveChat: (chatId: string) => {
+      setActiveChat: (chatId: string | null) => {
         set({ activeChat: chatId });
       },
 

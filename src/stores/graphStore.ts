@@ -26,7 +26,7 @@ interface GraphState {
   activeChat: string | null;
 
   // Actions
-  setActiveChat: (chatId: string) => void;
+  setActiveChat: (chatId: string | null) => void;
   ensureGraphExists: (chatId: string) => void;
   setGraphData: (data: string[], chatId?: string) => void;
   onNodesChange: (changes: NodeChange[], chatId?: string) => void;
@@ -52,7 +52,11 @@ export const useGraphStore = create<GraphState>()(
       activeChat: null,
 
       // Actions
-      setActiveChat: (chatId: string) => {
+      setActiveChat: (chatId: string | null) => {
+        if (chatId === null) {
+          set({ activeChat: null });
+          return;
+        }
         // Ensure graph exists for this chat
         get().ensureGraphExists(chatId);
         set({ activeChat: chatId });

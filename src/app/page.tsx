@@ -36,6 +36,7 @@ export default function Dashboard() {
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   useEffect(() => {
     // Initialize theme based on saved preference or system preference
@@ -43,7 +44,16 @@ export default function Dashboard() {
 
     // Check if device is mobile
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
+      const isMobileView = window.innerWidth < 768;
+      setIsMobile(isMobileView);
+
+      // When transitioning to mobile view, ensure the sidebar is not collapsed
+      if (isMobileView) {
+        // Set sidebar to expanded state when entering mobile view
+        setIsSidebarCollapsed(false);
+        // But keep it hidden by default on mobile
+        setIsMobileSidebarOpen(false);
+      }
     };
 
     // Initial check
@@ -165,6 +175,11 @@ export default function Dashboard() {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
 
+  // Mobile sidebar toggle
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
+  };
+
   // Simple toggle functions that only affect their respective panel
   const toggleLeftPanel = () => {
     if (isMobile) {
@@ -221,7 +236,7 @@ export default function Dashboard() {
       style={{ backgroundColor: 'var(--background)' }}
     >
       {/* Add TopBar component */}
-      <TopBar />
+      <TopBar onToggleSidebar={toggleMobileSidebar} />
 
       {/* Mobile View Toggle */}
       {isMobile && (
@@ -244,23 +259,39 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="flex-1 overflow-hidden flex">
-        {/* Sidebar */}
-        <Sidebar
-          isCollapsed={isSidebarCollapsed}
-          toggleSidebar={toggleSidebar}
-          onCreateDraftChat={() => {
-            // Set pending chat mode
-            setIsPendingChat(true);
-            // Set active chat to null
-            setActiveChat(null);
-            // Also set the graph store's active chat to null
-            setActiveGraphChat(null);
-          }}
-          onSelectChat={() => {
-            // Exit pending chat mode when an existing chat is selected
-            setIsPendingChat(false);
-          }}
-        />
+        {/* Mobile sidebar backdrop - only shown when mobile sidebar is open */}
+        {isMobile && isMobileSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-30"
+            onClick={toggleMobileSidebar}
+            aria-label="Close sidebar"
+          />
+        )}
+
+        {/* Sidebar - hidden on mobile unless toggled */}
+        {(!isMobile || isMobileSidebarOpen) && (
+          <Sidebar
+            isCollapsed={isSidebarCollapsed}
+            toggleSidebar={toggleSidebar}
+            isMobile={isMobile}
+            onCreateDraftChat={() => {
+              // Set pending chat mode
+              setIsPendingChat(true);
+              // Set active chat to null
+              setActiveChat(null);
+              // Also set the graph store's active chat to null
+              setActiveGraphChat(null);
+              // Close mobile sidebar after selection
+              if (isMobile) setIsMobileSidebarOpen(false);
+            }}
+            onSelectChat={() => {
+              // Exit pending chat mode when an existing chat is selected
+              setIsPendingChat(false);
+              // Close mobile sidebar after selection
+              if (isMobile) setIsMobileSidebarOpen(false);
+            }}
+          />
+        )}
 
         {isMobile ? (
           // Mobile layout - single view at a time

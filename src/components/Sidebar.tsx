@@ -19,6 +19,7 @@ interface SidebarProps {
   toggleSidebar: () => void;
   onCreateDraftChat: () => void; // This now activates the pending chat UI
   onSelectChat?: () => void; // New prop to handle existing chat selection
+  isMobile?: boolean; // Add this prop to check if we're in mobile view
 }
 
 export default function Sidebar({
@@ -26,6 +27,7 @@ export default function Sidebar({
   toggleSidebar,
   onCreateDraftChat,
   onSelectChat,
+  isMobile,
 }: SidebarProps) {
   const { chats, activeChat, deleteChat, setActiveChat, updateChatTitle } =
     useChatStore();
@@ -145,7 +147,11 @@ export default function Sidebar({
 
   return (
     <div
-      className="h-full flex flex-col border-r transition-all duration-300 w-64"
+      className={`h-full flex flex-col border-r transition-all duration-300 ${
+        typeof window !== 'undefined' && window.innerWidth < 768
+          ? 'fixed top-0 left-0 z-40 w-64 h-full mt-14' // Fixed position for mobile with top margin for the TopBar
+          : 'w-64'
+      }`}
       style={{
         backgroundColor: 'var(--card-background)',
         borderColor: 'var(--card-border)',
@@ -161,16 +167,19 @@ export default function Sidebar({
         >
           Chats
         </div>
-        <button
-          onClick={toggleSidebar}
-          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-          aria-label="Collapse sidebar"
-        >
-          <ChevronLeftIcon
-            className="h-5 w-5"
-            style={{ color: 'var(--card-foreground)' }}
-          />
-        </button>
+        {/* Only show the toggle button if we're not in mobile view */}
+        {!isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
+            aria-label="Collapse sidebar"
+          >
+            <ChevronLeftIcon
+              className="h-5 w-5"
+              style={{ color: 'var(--card-foreground)' }}
+            />
+          </button>
+        )}
       </div>
 
       <div className="p-3">
