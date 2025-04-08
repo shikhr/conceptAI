@@ -1,7 +1,6 @@
-// filepath: /home/shikhar/main/projects/portfolio/conceptai/src/components/Sidebar.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ChatBubbleLeftRightIcon,
   PlusIcon,
@@ -18,9 +17,16 @@ import { useGraphStore } from '../stores/graphStore';
 interface SidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
+  onCreateDraftChat: () => void;
+  draftChatId: string | null;
 }
 
-export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
+export default function Sidebar({
+  isCollapsed,
+  toggleSidebar,
+  onCreateDraftChat,
+  draftChatId,
+}: SidebarProps) {
   const {
     chats,
     activeChat,
@@ -36,9 +42,8 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
 
   // Handle creating a new chat
   const handleNewChat = () => {
-    const newChatId = addChat();
-    // Sync with graph store
-    setActiveGraphChat(newChatId);
+    // Instead of directly creating a real chat, create a draft chat
+    onCreateDraftChat();
   };
 
   // Handle deleting a chat
@@ -120,6 +125,29 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
         </button>
 
         <div className="flex-1 overflow-y-auto py-2">
+          {/* Show draft chat if it exists */}
+          {draftChatId && (
+            <div
+              key={draftChatId}
+              onClick={() => handleSelectChat(draftChatId)}
+              className={`p-2 mx-2 mb-1 rounded-md cursor-pointer transition-colors flex justify-center ${
+                activeChat === draftChatId
+                  ? 'bg-opacity-20'
+                  : 'hover:bg-opacity-10'
+              }`}
+              style={{
+                backgroundColor:
+                  activeChat === draftChatId
+                    ? 'var(--accent-foreground)'
+                    : 'transparent',
+                color: 'var(--card-foreground)',
+              }}
+            >
+              <ChatBubbleLeftRightIcon className="h-5 w-5" />
+            </div>
+          )}
+
+          {/* Show persisted chats */}
           {chats.map((chat) => (
             <div
               key={chat.id}
@@ -189,7 +217,7 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-2">
-        {chats.length === 0 ? (
+        {chats.length === 0 && !draftChatId ? (
           <div
             className="text-center py-4 text-sm"
             style={{ color: 'var(--muted-foreground)' }}
@@ -198,6 +226,40 @@ export default function Sidebar({ isCollapsed, toggleSidebar }: SidebarProps) {
           </div>
         ) : (
           <div className="space-y-1">
+            {/* Show draft chat if it exists */}
+            {draftChatId && (
+              <div
+                key={draftChatId}
+                onClick={() => handleSelectChat(draftChatId)}
+                className={`p-2 rounded-md cursor-pointer transition-colors ${
+                  activeChat === draftChatId
+                    ? 'bg-opacity-20'
+                    : 'hover:bg-opacity-10'
+                }`}
+                style={{
+                  backgroundColor:
+                    activeChat === draftChatId
+                      ? 'var(--accent-foreground)'
+                      : 'transparent',
+                  color: 'var(--card-foreground)',
+                }}
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1 truncate">
+                    New Chat{' '}
+                    <span className="text-xs ml-2 opacity-50">(Draft)</span>
+                  </div>
+                </div>
+                <div
+                  className="text-xs mt-1 truncate"
+                  style={{ color: 'var(--muted-foreground)' }}
+                >
+                  Just now
+                </div>
+              </div>
+            )}
+
+            {/* Show persisted chats */}
             {chats.map((chat) => (
               <div
                 key={chat.id}

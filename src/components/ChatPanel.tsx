@@ -14,9 +14,16 @@ interface Message {
 interface ChatPanelProps {
   messages: Message[];
   onSendMessage: (message: string) => void;
+  isDraft?: boolean;
+  onConvertDraft?: (message: string) => void; // New prop to handle converting a draft to a real chat
 }
 
-export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
+export default function ChatPanel({
+  messages,
+  onSendMessage,
+  isDraft = false,
+  onConvertDraft,
+}: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -43,7 +50,13 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      onSendMessage(input);
+      // If this is a draft chat, use the conversion callback
+      if (isDraft && onConvertDraft) {
+        onConvertDraft(input);
+      } else {
+        // Otherwise use the normal message handler
+        onSendMessage(input);
+      }
       setInput('');
     }
   };
@@ -76,7 +89,9 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             style={{ color: 'var(--muted-foreground)' }}
           >
             <span className={isMobile ? 'text-sm' : 'text-base'}>
-              Start a conversation with the AI Tutor
+              {isDraft
+                ? 'Type something to start a new conversation'
+                : 'Start a conversation with the AI Tutor'}
             </span>
           </div>
         ) : (

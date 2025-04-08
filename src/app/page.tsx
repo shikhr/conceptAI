@@ -24,6 +24,7 @@ export default function Dashboard() {
     addMessage,
     addChat,
     activeChat,
+    setActiveChat,
   } = useChatStore();
   const {
     setGraphData,
@@ -31,6 +32,9 @@ export default function Dashboard() {
     setActiveChat: setActiveGraphChat,
     getActiveGraph,
   } = useGraphStore();
+
+  // Draft chat ID for temporary session
+  const [draftChatId, setDraftChatId] = useState<string | null>(null);
 
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
@@ -51,10 +55,13 @@ export default function Dashboard() {
     // Add event listener for window resize
     window.addEventListener('resize', checkMobile);
 
-    // Create initial chat if none exists
+    // Create a draft chat ID if there's no active chat
     if (!activeChat) {
-      const newChatId = addChat('New Conversation');
-      setActiveGraphChat(newChatId);
+      // Instead of creating a persistent chat, just set a draft ID
+      const draftId = crypto.randomUUID();
+      setDraftChatId(draftId);
+      // Still set it as active in graph store, but no chat is actually created yet
+      setActiveGraphChat(draftId);
     }
 
     // Cleanup
@@ -71,14 +78,8 @@ export default function Dashboard() {
   const leftPanelRef = useRef<ImperativePanelHandle>(null);
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
-  // Function to handle new messages
-  const handleSendMessage = async (message: string) => {
-    if (!activeChat) return;
-
-    // Add user message to chat history
-    const userMessage = { role: 'user', content: message };
-    addMessage(userMessage);
-
+  // Function to process a message with the API
+  const processMessage = async (message: string, chatId: string) => {
     try {
       // Get current messages and graph data
       const messages = getActiveChatMessages();
@@ -102,11 +103,11 @@ export default function Dashboard() {
 
       // Update chat history with assistant's response
       const assistantMessage = { role: 'assistant', content: data.response };
-      addMessage(assistantMessage);
+      addMessage(assistantMessage, chatId);
 
       // Update graph data only if response contains graph data
       if (data.graph && data.graph.length > 0) {
-        setGraphData(data.graph);
+        setGraphData(data.graph, chatId);
       }
 
       // If this was the first message, update the chat title
@@ -120,11 +121,58 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error:', error);
-      addMessage({
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your request.',
-      });
+      addMessage(
+        {
+          role: 'assistant',
+          content: 'Sorry, there was an error processing your request.',
+        },
+        chatId
+      );
     }
+  };
+
+  // Function to handle new messages
+  const handleSendMessage = async (message: string) => {
+    let chatId = activeChat;
+
+    // If we're using a draft chat, ignore - this should be handled by onConvertDraft
+    // This function should only be called for messages in existing chats
+    if (draftChatId && activeChat === draftChatId) {
+      console.warn(
+        'handleSendMessage called with draft chat - should use handleConvertDraft instead'
+      );
+      return;
+    }
+
+    if (!chatId) return;
+
+    // Add user message to chat history
+    const userMessage = { role: 'user', content: message };
+    addMessage(userMessage, chatId);
+
+    // Process the message with API
+    processMessage(message, chatId);
+  };
+
+  // Function to handle converting a draft chat to a real chat
+  const handleConvertDraft = (message: string) => {
+    // Create a real chat only when the user sends a message
+    const chatId = addChat('New Chat');
+
+    // Update graph store
+    setActiveGraphChat(chatId);
+
+    // Clear the draft ID as we now have a real chat
+    setDraftChatId(null);
+
+    // Now that we have a real chat, add the message to it
+    // But we need to bypass the draft check in handleSendMessage
+    // Add user message to chat history
+    const userMessage = { role: 'user', content: message };
+    addMessage(userMessage, chatId);
+
+    // Process the message with API, etc.
+    processMessage(message, chatId);
   };
 
   // Toggle function for mobile view
@@ -199,6 +247,20 @@ export default function Dashboard() {
           <Sidebar
             isCollapsed={isSidebarCollapsed}
             toggleSidebar={toggleSidebar}
+            onCreateDraftChat={() => {
+              // Check if there's already a draft chat - only create a new one if there isn't
+              if (!draftChatId) {
+                const newDraftId = crypto.randomUUID();
+                setDraftChatId(newDraftId);
+                setActiveChat(newDraftId);
+                setActiveGraphChat(newDraftId);
+              } else {
+                // If a draft chat already exists, just make it active
+                setActiveChat(draftChatId);
+                setActiveGraphChat(draftChatId);
+              }
+            }}
+            draftChatId={draftChatId}
           />
           <div
             className="flex-1 flex items-center justify-center"
@@ -247,6 +309,20 @@ export default function Dashboard() {
         <Sidebar
           isCollapsed={isSidebarCollapsed}
           toggleSidebar={toggleSidebar}
+          onCreateDraftChat={() => {
+            // Check if there's already a draft chat - only create a new one if there isn't
+            if (!draftChatId) {
+              const newDraftId = crypto.randomUUID();
+              setDraftChatId(newDraftId);
+              setActiveChat(newDraftId);
+              setActiveGraphChat(newDraftId);
+            } else {
+              // If a draft chat already exists, just make it active
+              setActiveChat(draftChatId);
+              setActiveGraphChat(draftChatId);
+            }
+          }}
+          draftChatId={draftChatId}
         />
 
         {isMobile ? (
@@ -257,6 +333,8 @@ export default function Dashboard() {
                 <ChatPanel
                   messages={messages}
                   onSendMessage={handleSendMessage}
+                  isDraft={!activeChat || activeChat === draftChatId}
+                  onConvertDraft={handleConvertDraft}
                 />
               </div>
             ) : (
@@ -305,6 +383,8 @@ export default function Dashboard() {
                   <ChatPanel
                     messages={messages}
                     onSendMessage={handleSendMessage}
+                    isDraft={!activeChat || activeChat === draftChatId}
+                    onConvertDraft={handleConvertDraft}
                   />
                 </div>
               </Panel>
