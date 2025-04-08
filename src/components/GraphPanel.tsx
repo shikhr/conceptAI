@@ -8,7 +8,7 @@ import { useThemeStore } from '../stores/themeStore';
 
 export default function GraphPanel() {
   // Use the graph store with nodes and edges
-  const { nodes, edges, onNodesChange, onEdgesChange } = useGraphStore();
+  const { getActiveGraph, onNodesChange, onEdgesChange } = useGraphStore();
 
   // Use the theme store
   const { isDarkMode } = useThemeStore();
@@ -29,6 +29,11 @@ export default function GraphPanel() {
       window.removeEventListener('resize', checkMobile);
     };
   }, []);
+
+  // Get the active graph data
+  const activeGraph = getActiveGraph();
+  const nodes = activeGraph?.nodes || [];
+  const edges = activeGraph?.edges || [];
 
   return (
     <div

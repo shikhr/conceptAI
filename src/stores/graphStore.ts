@@ -11,72 +11,130 @@ import {
 import { AdjacencyList, processGraphData } from '../utils/graph/dataUtils';
 import { getLayoutedElements } from '../utils/graph/layoutUtils';
 
-interface GraphState {
-  // State
+// Define graph data interface
+interface GraphData {
   nodes: Node[];
   edges: Edge[];
   adjacencyList: AdjacencyList;
+}
+
+interface GraphState {
+  // State
+  graphs: Record<string, GraphData>;
+  activeChat: string | null;
 
   // Actions
-  setGraphData: (data: string[]) => void;
-  onNodesChange: (changes: NodeChange[]) => void;
-  onEdgesChange: (changes: EdgeChange[]) => void;
-  resetGraph: () => void;
-  getGraphDataString: () => string[];
+  setActiveChat: (chatId: string) => void;
+  ensureGraphExists: (chatId: string) => void;
+  setGraphData: (data: string[], chatId?: string) => void;
+  onNodesChange: (changes: NodeChange[], chatId?: string) => void;
+  onEdgesChange: (changes: EdgeChange[], chatId?: string) => void;
+  resetGraph: (chatId?: string) => void;
+  getGraphDataString: (chatId?: string) => string[];
+  getActiveGraph: () => GraphData | null;
+  deleteGraph: (chatId: string) => void;
 }
+
+const emptyGraphData: GraphData = {
+  nodes: [],
+  edges: [],
+  adjacencyList: {},
+};
 
 export const useGraphStore = create<GraphState>()(
   persist(
     (set, get) => ({
       // Initial state
-      nodes: [],
-      edges: [],
-      adjacencyList: {},
+      graphs: {},
+      activeChat: null,
 
       // Actions
-      setGraphData: (data: string[]) => {
-        const {
-          nodes: currentNodes,
-          edges: currentEdges,
-          adjacencyList,
-        } = get();
+      setActiveChat: (chatId: string) => {
+        // Ensure graph exists for this chat
+        get().ensureGraphExists(chatId);
+        set({ activeChat: chatId });
+      },
 
-        // Process the new graph data
-        const {
-          nodes: processedNodes,
-          edges: processedEdges,
-          updatedAdjacencyList,
-        } = processGraphData(data, currentNodes, currentEdges, adjacencyList);
+      ensureGraphExists: (chatId: string) => {
+        set((state) => {
+          if (!state.graphs[chatId]) {
+            return {
+              graphs: {
+                ...state.graphs,
+                [chatId]: { ...emptyGraphData },
+              },
+            };
+          }
+          return state;
+        });
+      },
 
-        // Check if there are any new nodes that need positioning
-        const hasNewNodes = processedNodes.some(
-          (node) =>
-            !currentNodes.some((existingNode) => existingNode.id === node.id)
-        );
+      getActiveGraph: () => {
+        const { graphs, activeChat } = get();
+        if (!activeChat || !graphs[activeChat]) return null;
+        return graphs[activeChat];
+      },
 
-        // Only apply layout if there are new nodes or node count has changed
-        if (hasNewNodes || processedNodes.length !== currentNodes.length) {
-          const layoutedNodes = getLayoutedElements(
-            processedNodes,
-            processedEdges
-          );
-          set({
-            nodes: layoutedNodes,
-            edges: processedEdges,
-            adjacencyList: updatedAdjacencyList,
-          });
-        } else {
-          set({
+      setGraphData: (data: string[], chatId?: string) => {
+        const targetChatId = chatId || get().activeChat;
+        if (!targetChatId) return;
+
+        // Ensure graph exists
+        get().ensureGraphExists(targetChatId);
+
+        set((state) => {
+          const currentGraph = state.graphs[targetChatId] || {
+            ...emptyGraphData,
+          };
+
+          // Process the new graph data
+          const {
             nodes: processedNodes,
             edges: processedEdges,
-            adjacencyList: updatedAdjacencyList,
-          });
-        }
+            updatedAdjacencyList,
+          } = processGraphData(
+            data,
+            currentGraph.nodes,
+            currentGraph.edges,
+            currentGraph.adjacencyList
+          );
+
+          // Check if there are any new nodes that need positioning
+          const hasNewNodes = processedNodes.some(
+            (node) =>
+              !currentGraph.nodes.some(
+                (existingNode) => existingNode.id === node.id
+              )
+          );
+
+          // Only apply layout if there are new nodes or node count has changed
+          const updatedNodes =
+            hasNewNodes || processedNodes.length !== currentGraph.nodes.length
+              ? getLayoutedElements(processedNodes, processedEdges)
+              : processedNodes;
+
+          return {
+            graphs: {
+              ...state.graphs,
+              [targetChatId]: {
+                nodes: updatedNodes,
+                edges: processedEdges,
+                adjacencyList: updatedAdjacencyList,
+              },
+            },
+          };
+        });
       },
 
       // Convert adjacency list to string array in format "NODE1::NODE2"
-      getGraphDataString: () => {
-        const { adjacencyList } = get();
+      getGraphDataString: (chatId?: string) => {
+        const targetChatId = chatId || get().activeChat;
+        if (!targetChatId) return [];
+
+        const graph = get().graphs[targetChatId];
+        if (!graph) return [];
+
+        const { adjacencyList } = graph;
         const result: string[] = [];
 
         Object.entries(adjacencyList).forEach(([sourceNode, connections]) => {
@@ -88,23 +146,63 @@ export const useGraphStore = create<GraphState>()(
         return result;
       },
 
-      onNodesChange: (changes: NodeChange[]) => {
+      onNodesChange: (changes: NodeChange[], chatId?: string) => {
+        const targetChatId = chatId || get().activeChat;
+        if (!targetChatId) return;
+
+        set((state) => {
+          const currentGraph = state.graphs[targetChatId];
+          if (!currentGraph) return state;
+
+          return {
+            graphs: {
+              ...state.graphs,
+              [targetChatId]: {
+                ...currentGraph,
+                nodes: applyNodeChanges(changes, currentGraph.nodes),
+              },
+            },
+          };
+        });
+      },
+
+      onEdgesChange: (changes: EdgeChange[], chatId?: string) => {
+        const targetChatId = chatId || get().activeChat;
+        if (!targetChatId) return;
+
+        set((state) => {
+          const currentGraph = state.graphs[targetChatId];
+          if (!currentGraph) return state;
+
+          return {
+            graphs: {
+              ...state.graphs,
+              [targetChatId]: {
+                ...currentGraph,
+                edges: applyEdgeChanges(changes, currentGraph.edges),
+              },
+            },
+          };
+        });
+      },
+
+      resetGraph: (chatId?: string) => {
+        const targetChatId = chatId || get().activeChat;
+        if (!targetChatId) return;
+
         set((state) => ({
-          nodes: applyNodeChanges(changes, state.nodes),
+          graphs: {
+            ...state.graphs,
+            [targetChatId]: { ...emptyGraphData },
+          },
         }));
       },
 
-      onEdgesChange: (changes: EdgeChange[]) => {
-        set((state) => ({
-          edges: applyEdgeChanges(changes, state.edges),
-        }));
-      },
-
-      resetGraph: () => {
-        set({
-          nodes: [],
-          edges: [],
-          adjacencyList: {},
+      deleteGraph: (chatId: string) => {
+        set((state) => {
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { [chatId]: _, ...updatedGraphs } = state.graphs;
+          return { graphs: updatedGraphs };
         });
       },
     }),
