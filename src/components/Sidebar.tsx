@@ -17,15 +17,13 @@ import { useGraphStore } from '../stores/graphStore';
 interface SidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
-  onCreateDraftChat: () => void;
-  draftChatId: string | null;
+  onCreateDraftChat: () => void; // Keeping the same prop name for compatibility, but it now creates a real chat
 }
 
 export default function Sidebar({
   isCollapsed,
   toggleSidebar,
   onCreateDraftChat,
-  draftChatId,
 }: SidebarProps) {
   const { chats, activeChat, deleteChat, setActiveChat, updateChatTitle } =
     useChatStore();
@@ -36,7 +34,6 @@ export default function Sidebar({
 
   // Handle creating a new chat
   const handleNewChat = () => {
-    // Instead of directly creating a real chat, create a draft chat
     onCreateDraftChat();
   };
 
@@ -92,74 +89,49 @@ export default function Sidebar({
           borderColor: 'var(--card-border)',
         }}
       >
-        <div className="p-2 flex justify-end">
+        <div
+          className="flex justify-center p-3 border-b"
+          style={{ borderColor: 'var(--card-border)' }}
+        >
           <button
             onClick={toggleSidebar}
-            className="p-1 rounded-md hover:bg-opacity-80 transition-colors"
-            style={{
-              backgroundColor: 'var(--muted-background)',
-              color: 'var(--card-foreground)',
-            }}
+            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             aria-label="Expand sidebar"
           >
-            <ChevronRightIcon className="h-5 w-5" />
+            <ChevronRightIcon
+              className="h-5 w-5"
+              style={{ color: 'var(--card-foreground)' }}
+            />
           </button>
         </div>
 
-        <button
-          onClick={handleNewChat}
-          className="mx-auto my-2 p-2 rounded-full transition-colors"
-          style={{
-            backgroundColor: 'var(--accent-foreground)',
-            color: 'white',
-          }}
-          aria-label="New chat"
-        >
-          <PlusIcon className="h-5 w-5" />
-        </button>
+        <div className="flex-1">
+          <button
+            onClick={handleNewChat}
+            className="w-full p-2 my-2 flex justify-center"
+            style={{ color: 'var(--card-foreground)' }}
+          >
+            <PlusIcon className="h-5 w-5" />
+          </button>
 
-        <div className="flex-1 overflow-y-auto py-2">
-          {/* Show draft chat if it exists */}
-          {draftChatId && (
-            <div
-              key={draftChatId}
-              onClick={() => handleSelectChat(draftChatId)}
-              className={`p-2 mx-2 mb-1 rounded-md cursor-pointer transition-colors flex justify-center ${
-                activeChat === draftChatId
-                  ? 'bg-opacity-20'
-                  : 'hover:bg-opacity-10'
-              }`}
-              style={{
-                backgroundColor:
-                  activeChat === draftChatId
-                    ? 'var(--accent-foreground)'
-                    : 'transparent',
-                color: 'var(--card-foreground)',
-              }}
-            >
-              <ChatBubbleLeftRightIcon className="h-5 w-5" />
-            </div>
-          )}
-
-          {/* Show persisted chats */}
-          {chats.map((chat) => (
-            <div
-              key={chat.id}
-              onClick={() => handleSelectChat(chat.id)}
-              className={`p-2 mx-2 mb-1 rounded-md cursor-pointer transition-colors flex justify-center ${
-                activeChat === chat.id ? 'bg-opacity-20' : 'hover:bg-opacity-10'
-              }`}
-              style={{
-                backgroundColor:
+          <div className="flex-1 overflow-y-auto py-2">
+            {chats.map((chat) => (
+              <div
+                key={chat.id}
+                onClick={() => handleSelectChat(chat.id)}
+                className={`p-2 mx-2 mb-1 rounded-md cursor-pointer transition-colors flex justify-center ${
                   activeChat === chat.id
-                    ? 'var(--accent-foreground)'
-                    : 'transparent',
-                color: 'var(--card-foreground)',
-              }}
-            >
-              <ChatBubbleLeftRightIcon className="h-5 w-5" />
-            </div>
-          ))}
+                    ? 'bg-gray-200 dark:bg-gray-700'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+                style={{
+                  color: 'var(--card-foreground)',
+                }}
+              >
+                <ChatBubbleLeftRightIcon className="h-5 w-5" />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -174,36 +146,32 @@ export default function Sidebar({
       }}
     >
       <div
-        className="p-3 flex justify-between items-center border-b"
+        className="flex justify-between items-center p-3 border-b"
         style={{ borderColor: 'var(--card-border)' }}
       >
-        <h2
+        <div
           className="font-semibold"
           style={{ color: 'var(--card-foreground)' }}
         >
           Chats
-        </h2>
+        </div>
         <button
           onClick={toggleSidebar}
-          className="p-1 rounded-md hover:bg-opacity-80 transition-colors"
-          style={{
-            backgroundColor: 'var(--muted-background)',
-            color: 'var(--card-foreground)',
-          }}
+          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
           aria-label="Collapse sidebar"
         >
-          <ChevronLeftIcon className="h-5 w-5" />
+          <ChevronLeftIcon
+            className="h-5 w-5"
+            style={{ color: 'var(--card-foreground)' }}
+          />
         </button>
       </div>
 
       <div className="p-3">
         <button
           onClick={handleNewChat}
-          className="w-full p-2 rounded-md transition-colors flex items-center justify-center gap-2"
-          style={{
-            backgroundColor: 'var(--accent-foreground)',
-            color: 'white',
-          }}
+          className="w-full p-2 rounded-md flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+          style={{ color: 'var(--card-foreground)' }}
         >
           <PlusIcon className="h-5 w-5" />
           <span>New Chat</span>
@@ -211,7 +179,7 @@ export default function Sidebar({
       </div>
 
       <div className="flex-1 overflow-y-auto px-3 py-2">
-        {chats.length === 0 && !draftChatId ? (
+        {chats.length === 0 ? (
           <div
             className="text-center py-4 text-sm"
             style={{ color: 'var(--muted-foreground)' }}
@@ -220,39 +188,6 @@ export default function Sidebar({
           </div>
         ) : (
           <div className="space-y-1">
-            {/* Show draft chat if it exists */}
-            {draftChatId && (
-              <div
-                key={draftChatId}
-                onClick={() => handleSelectChat(draftChatId)}
-                className={`p-2 rounded-md cursor-pointer transition-colors ${
-                  activeChat === draftChatId
-                    ? 'bg-opacity-20'
-                    : 'hover:bg-opacity-10'
-                }`}
-                style={{
-                  backgroundColor:
-                    activeChat === draftChatId
-                      ? 'var(--accent-foreground)'
-                      : 'transparent',
-                  color: 'var(--card-foreground)',
-                }}
-              >
-                <div className="flex justify-between items-start">
-                  <div className="flex-1 truncate">
-                    New Chat{' '}
-                    <span className="text-xs ml-2 opacity-50">(Draft)</span>
-                  </div>
-                </div>
-                <div
-                  className="text-xs mt-1 truncate"
-                  style={{ color: 'var(--muted-foreground)' }}
-                >
-                  Just now
-                </div>
-              </div>
-            )}
-
             {/* Show persisted chats */}
             {chats.map((chat) => (
               <div
@@ -260,77 +195,85 @@ export default function Sidebar({
                 onClick={() => handleSelectChat(chat.id)}
                 className={`p-2 rounded-md cursor-pointer transition-colors ${
                   activeChat === chat.id
-                    ? 'bg-opacity-20'
-                    : 'hover:bg-opacity-10'
+                    ? 'bg-gray-200 dark:bg-gray-700'
+                    : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                 }`}
                 style={{
-                  backgroundColor:
-                    activeChat === chat.id
-                      ? 'var(--accent-foreground)'
-                      : 'transparent',
                   color: 'var(--card-foreground)',
                 }}
               >
                 <div className="flex justify-between items-start">
-                  {editingChatId === chat.id ? (
-                    <div
-                      className="flex items-center gap-1 flex-1"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <input
-                        type="text"
-                        value={editTitle}
-                        onChange={(e) => setEditTitle(e.target.value)}
-                        className="flex-1 p-1 text-sm rounded"
-                        style={{
-                          backgroundColor: 'var(--background)',
-                          color: 'var(--foreground)',
-                          border: '1px solid var(--card-border)',
-                        }}
-                        autoFocus
-                      />
-                      <button
-                        onClick={(e) => handleSaveEdit(chat.id, e)}
-                        className="p-1 rounded"
-                        style={{
-                          backgroundColor: 'var(--muted-background)',
-                          color: 'var(--card-foreground)',
-                        }}
+                  <div className="flex-1 truncate">
+                    {editingChatId === chat.id ? (
+                      <div
+                        className="flex items-center gap-1"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <CheckIcon className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="p-1 rounded"
-                        style={{
-                          backgroundColor: 'var(--muted-background)',
-                          color: 'var(--card-foreground)',
-                        }}
-                      >
-                        <XMarkIcon className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <div className="flex-1 truncate">{chat.title}</div>
-                      <div className="flex items-center gap-1">
+                        <input
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          className="flex-1 p-1 rounded text-sm focus:outline-none focus:ring-1"
+                          style={
+                            {
+                              backgroundColor: 'var(--background)',
+                              color: 'var(--card-foreground)',
+                              borderColor: 'var(--card-border)',
+                              ['--tw-ring-color' as string]:
+                                'var(--accent-foreground)',
+                            } as React.CSSProperties
+                          }
+                          autoFocus
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              handleSaveEdit(
+                                chat.id,
+                                e as unknown as React.MouseEvent
+                              );
+                            } else if (e.key === 'Escape') {
+                              handleCancelEdit(
+                                e as unknown as React.MouseEvent
+                              );
+                            }
+                          }}
+                        />
                         <button
-                          onClick={(e) => handleStartEdit(chat, e)}
-                          className="p-1 rounded-md opacity-50 hover:opacity-100"
-                          aria-label="Edit chat title"
+                          onClick={(e) => handleSaveEdit(chat.id, e)}
+                          className="p-1 rounded-md"
+                          aria-label="Save chat title"
                         >
-                          <PencilIcon className="h-3.5 w-3.5" />
+                          <CheckIcon className="h-4 w-4 text-green-500" />
                         </button>
                         <button
-                          onClick={(e) => handleDeleteChat(chat.id, e)}
-                          className="p-1 rounded-md opacity-50 hover:opacity-100 hover:text-red-500"
-                          aria-label="Delete chat"
+                          onClick={handleCancelEdit}
+                          className="p-1 rounded-md"
+                          aria-label="Cancel editing"
                         >
-                          <TrashIcon className="h-3.5 w-3.5" />
+                          <XMarkIcon className="h-4 w-4 text-red-500" />
                         </button>
                       </div>
-                    </>
-                  )}
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <span className="truncate">{chat.title}</span>
+                        <div className="flex opacity-0 group-hover:opacity-100">
+                          <button
+                            onClick={(e) => handleStartEdit(chat, e)}
+                            className="p-1 rounded-md opacity-50 hover:opacity-100"
+                            aria-label="Edit chat title"
+                          >
+                            <PencilIcon className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={(e) => handleDeleteChat(chat.id, e)}
+                            className="p-1 rounded-md opacity-50 hover:opacity-100 hover:text-red-500"
+                            aria-label="Delete chat"
+                          >
+                            <TrashIcon className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div
                   className="text-xs mt-1 truncate"

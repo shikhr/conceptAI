@@ -13,6 +13,10 @@ NODE1::NODE2
 NODE3::NODE2
 </Graph>
 
+<Query> // user query
+Explain the concept of...
+</Query>
+
 Output format consists of : 
 
 <Response> //explain the concepts and other stuff

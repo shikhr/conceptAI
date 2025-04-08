@@ -14,19 +14,13 @@ interface Message {
 interface ChatPanelProps {
   messages: Message[];
   onSendMessage: (message: string) => void;
-  isDraft?: boolean;
-  onConvertDraft?: (message: string) => void; // New prop to handle converting a draft to a real chat
 }
 
-export default function ChatPanel({
-  messages,
-  onSendMessage,
-  isDraft = false,
-  onConvertDraft,
-}: ChatPanelProps) {
+export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Check for mobile view
   useEffect(() => {
@@ -47,16 +41,17 @@ export default function ChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Auto-focus on input field when no messages
+  useEffect(() => {
+    if (messages.length === 0) {
+      inputRef.current?.focus();
+    }
+  }, [messages.length]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (input.trim()) {
-      // If this is a draft chat, use the conversion callback
-      if (isDraft && onConvertDraft) {
-        onConvertDraft(input);
-      } else {
-        // Otherwise use the normal message handler
-        onSendMessage(input);
-      }
+      onSendMessage(input);
       setInput('');
     }
   };
@@ -89,9 +84,7 @@ export default function ChatPanel({
             style={{ color: 'var(--muted-foreground)' }}
           >
             <span className={isMobile ? 'text-sm' : 'text-base'}>
-              {isDraft
-                ? 'Type something to start a new conversation'
-                : 'Start a conversation with the AI Tutor'}
+              Start a conversation with the AI Tutor
             </span>
           </div>
         ) : (
@@ -148,6 +141,7 @@ export default function ChatPanel({
 
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
+          ref={inputRef}
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}

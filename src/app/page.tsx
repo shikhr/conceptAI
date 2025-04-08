@@ -32,9 +32,6 @@ export default function Dashboard() {
     setActiveChat: setActiveGraphChat,
   } = useGraphStore();
 
-  // Draft chat ID for temporary session
-  const [draftChatId, setDraftChatId] = useState<string | null>(null);
-
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -54,13 +51,10 @@ export default function Dashboard() {
     // Add event listener for window resize
     window.addEventListener('resize', checkMobile);
 
-    // Create a draft chat ID if there's no active chat
+    // Create a new chat if there's no active chat
     if (!activeChat) {
-      // Instead of creating a persistent chat, just set a draft ID
-      const draftId = crypto.randomUUID();
-      setDraftChatId(draftId);
-      // Still set it as active in graph store, but no chat is actually created yet
-      setActiveGraphChat(draftId);
+      const chatId = addChat('New Chat');
+      setActiveGraphChat(chatId);
     }
 
     // Cleanup
@@ -84,6 +78,9 @@ export default function Dashboard() {
       const messages = getActiveChatMessages();
       const currentGraphStrings = getGraphDataString();
       const currentGraph = currentGraphStrings.join('\n');
+
+      const userMessage = { role: 'user', content: message };
+      addMessage(userMessage, chatId);
 
       // Call API with the current messages and user query
       const response = await fetch('/api/chat', {
@@ -133,44 +130,15 @@ export default function Dashboard() {
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
     const chatId = activeChat;
-
-    // If we're using a draft chat, ignore - this should be handled by onConvertDraft
-    // This function should only be called for messages in existing chats
-    if (draftChatId && activeChat === draftChatId) {
-      console.warn(
-        'handleSendMessage called with draft chat - should use handleConvertDraft instead'
-      );
+    if (!chatId) {
+      // If somehow there's no active chat, create one
+      const newChatId = addChat('New Chat');
+      setActiveGraphChat(newChatId);
+      processMessage(message, newChatId);
       return;
     }
 
-    if (!chatId) return;
-
-    // Add user message to chat history
-    const userMessage = { role: 'user', content: message };
-    addMessage(userMessage, chatId);
-
     // Process the message with API
-    processMessage(message, chatId);
-  };
-
-  // Function to handle converting a draft chat to a real chat
-  const handleConvertDraft = (message: string) => {
-    // Create a real chat only when the user sends a message
-    const chatId = addChat('New Chat');
-
-    // Update graph store
-    setActiveGraphChat(chatId);
-
-    // Clear the draft ID as we now have a real chat
-    setDraftChatId(null);
-
-    // Now that we have a real chat, add the message to it
-    // But we need to bypass the draft check in handleSendMessage
-    // Add user message to chat history
-    const userMessage = { role: 'user', content: message };
-    addMessage(userMessage, chatId);
-
-    // Process the message with API, etc.
     processMessage(message, chatId);
   };
 
@@ -233,47 +201,6 @@ export default function Dashboard() {
 
   const messages = getActiveChatMessages();
 
-  // If there's no active chat, just show the sidebar
-  if (!activeChat) {
-    return (
-      <div
-        className="h-screen flex flex-col"
-        style={{ backgroundColor: 'var(--background)' }}
-      >
-        <TopBar />
-        <div className="flex-1 flex">
-          <Sidebar
-            isCollapsed={isSidebarCollapsed}
-            toggleSidebar={toggleSidebar}
-            onCreateDraftChat={() => {
-              // Check if there's already a draft chat - only create a new one if there isn't
-              if (!draftChatId) {
-                const newDraftId = crypto.randomUUID();
-                setDraftChatId(newDraftId);
-                setActiveChat(newDraftId);
-                setActiveGraphChat(newDraftId);
-              } else {
-                // If a draft chat already exists, just make it active
-                setActiveChat(draftChatId);
-                setActiveGraphChat(draftChatId);
-              }
-            }}
-            draftChatId={draftChatId}
-          />
-          <div
-            className="flex-1 flex items-center justify-center"
-            style={{ color: 'var(--muted-foreground)' }}
-          >
-            <div className="text-center">
-              <h2 className="text-xl font-semibold mb-2">No Active Chat</h2>
-              <p>Select a chat from the sidebar or create a new one</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className="h-screen flex flex-col"
@@ -308,19 +235,11 @@ export default function Dashboard() {
           isCollapsed={isSidebarCollapsed}
           toggleSidebar={toggleSidebar}
           onCreateDraftChat={() => {
-            // Check if there's already a draft chat - only create a new one if there isn't
-            if (!draftChatId) {
-              const newDraftId = crypto.randomUUID();
-              setDraftChatId(newDraftId);
-              setActiveChat(newDraftId);
-              setActiveGraphChat(newDraftId);
-            } else {
-              // If a draft chat already exists, just make it active
-              setActiveChat(draftChatId);
-              setActiveGraphChat(draftChatId);
-            }
+            // Create a new actual chat instead of a draft
+            const chatId = addChat('New Chat');
+            setActiveChat(chatId);
+            setActiveGraphChat(chatId);
           }}
-          draftChatId={draftChatId}
         />
 
         {isMobile ? (
@@ -331,8 +250,6 @@ export default function Dashboard() {
                 <ChatPanel
                   messages={messages}
                   onSendMessage={handleSendMessage}
-                  isDraft={!activeChat || activeChat === draftChatId}
-                  onConvertDraft={handleConvertDraft}
                 />
               </div>
             ) : (
@@ -381,8 +298,6 @@ export default function Dashboard() {
                   <ChatPanel
                     messages={messages}
                     onSendMessage={handleSendMessage}
-                    isDraft={!activeChat || activeChat === draftChatId}
-                    onConvertDraft={handleConvertDraft}
                   />
                 </div>
               </Panel>
