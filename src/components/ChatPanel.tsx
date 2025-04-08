@@ -5,6 +5,7 @@ import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
+import { useMediaQuery } from '../hooks/useMediaQuery'; // We'll create this hook
 
 interface Message {
   role: string;
@@ -19,22 +20,10 @@ interface ChatPanelProps {
 export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
   const [input, setInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Check for mobile view
-  useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, []);
+  // Use a custom hook that handles SSR properly
+  const isMobile = useMediaQuery('(max-width: 768px)');
 
   // Auto-scroll to the bottom when new messages arrive
   useEffect(() => {
@@ -83,12 +72,12 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             className="flex items-center justify-center h-full"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            <span className={isMobile ? 'text-sm' : 'text-base'}>
+            <span className="text-base md:text-base">
               Start a conversation with the AI Tutor
             </span>
           </div>
         ) : (
-          <div className={`space-y-${isMobile ? '2' : '4'}`}>
+          <div className="space-y-4">
             {messages.map((message, index) => (
               <div
                 key={index}
@@ -97,7 +86,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                 }`}
               >
                 <div
-                  className={`${isMobile ? 'p-2' : 'p-3'} rounded-lg ${
+                  className={`p-2 md:p-3 rounded-lg ${
                     message.role === 'user'
                       ? 'rounded-br-none max-w-[80%]'
                       : 'rounded-bl-none max-w-none'
@@ -114,11 +103,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                   }}
                 >
                   {message.role === 'assistant' ? (
-                    <div
-                      className={`max-w-5xl prose prose-slate dark:prose-invert ${
-                        isMobile ? 'prose-sm' : ''
-                      }`}
-                    >
+                    <div className="max-w-5xl prose prose-slate dark:prose-invert prose-sm md:prose">
                       <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         rehypePlugins={[rehypeRaw]}
@@ -127,7 +112,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
                       </ReactMarkdown>
                     </div>
                   ) : (
-                    <div className={isMobile ? 'text-sm' : 'text-base'}>
+                    <div className="text-sm md:text-base">
                       {extractQuery(message.content)}
                     </div>
                   )}
@@ -146,9 +131,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask a question..."
-          className={`flex-1 ${
-            isMobile ? 'p-2 text-sm' : 'p-3 text-base'
-          } rounded-lg focus:outline-none focus:ring-2`}
+          className="flex-1 p-2 md:p-3 text-sm md:text-base rounded-lg focus:outline-none focus:ring-2"
           style={
             {
               backgroundColor: 'var(--card-background)',
@@ -161,9 +144,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
         <button
           type="submit"
           disabled={!input.trim()}
-          className={`${
-            isMobile ? 'p-2' : 'p-3'
-          } rounded-lg transition-colors focus:outline-none focus:ring-2`}
+          className="p-2 md:p-3 rounded-lg transition-colors focus:outline-none focus:ring-2"
           style={
             {
               backgroundColor: !input.trim()
@@ -174,9 +155,7 @@ export default function ChatPanel({ messages, onSendMessage }: ChatPanelProps) {
             } as React.CSSProperties
           }
         >
-          <PaperAirplaneIcon
-            className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`}
-          />
+          <PaperAirplaneIcon className="h-4 w-4 md:h-5 md:w-5" />
         </button>
       </form>
     </div>

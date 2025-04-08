@@ -17,13 +17,15 @@ import { useGraphStore } from '../stores/graphStore';
 interface SidebarProps {
   isCollapsed: boolean;
   toggleSidebar: () => void;
-  onCreateDraftChat: () => void; // Keeping the same prop name for compatibility, but it now creates a real chat
+  onCreateDraftChat: () => void; // This now activates the pending chat UI
+  onSelectChat?: () => void; // New prop to handle existing chat selection
 }
 
 export default function Sidebar({
   isCollapsed,
   toggleSidebar,
   onCreateDraftChat,
+  onSelectChat,
 }: SidebarProps) {
   const { chats, activeChat, deleteChat, setActiveChat, updateChatTitle } =
     useChatStore();
@@ -48,6 +50,10 @@ export default function Sidebar({
     setActiveChat(chatId);
     // Sync with graph store
     setActiveGraphChat(chatId);
+    // Notify parent that an existing chat was selected
+    if (onSelectChat) {
+      onSelectChat();
+    }
   };
 
   // Start editing a chat title
@@ -184,7 +190,8 @@ export default function Sidebar({
             className="text-center py-4 text-sm"
             style={{ color: 'var(--muted-foreground)' }}
           >
-            No chats yet. Create a new chat to get started.
+            <span className="block">No chats yet.</span>
+            <span className="block">Ask something to start a chat.</span>
           </div>
         ) : (
           <div className="space-y-1">
@@ -193,7 +200,7 @@ export default function Sidebar({
               <div
                 key={chat.id}
                 onClick={() => handleSelectChat(chat.id)}
-                className={`p-2 rounded-md cursor-pointer transition-colors ${
+                className={`p-2 rounded-md group cursor-pointer transition-colors ${
                   activeChat === chat.id
                     ? 'bg-gray-200 dark:bg-gray-700'
                     : 'hover:bg-gray-100 dark:hover:bg-gray-800'

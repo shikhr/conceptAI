@@ -212,6 +212,7 @@ export const useGraphStore = create<GraphState>()(
     {
       name: 'graph-storage', // unique name for localStorage key
       version: APP_VERSION, // Use the shared APP_VERSION constant
+      skipHydration: true, // Skip initial hydration to prevent SSR/client mismatch
       migrate: (persistedState: unknown, version): GraphState => {
         // If migrating from an older version or version doesn't match current
         if (version !== APP_VERSION) {

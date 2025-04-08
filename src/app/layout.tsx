@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import StoreHydrator from '@/components/StoreHydrator';
 
 export const metadata: Metadata = {
   title: 'Concept AI',
@@ -14,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="antialiased min-h-screen bg-[var(--background)] text-[var(--foreground)]">
-        {children}
+        <StoreHydrator>{children}</StoreHydrator>
       </body>
     </html>
   );

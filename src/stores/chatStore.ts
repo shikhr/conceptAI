@@ -171,6 +171,7 @@ export const useChatStore = create<ChatState>()(
     {
       name: 'chat-storage', // unique name for localStorage key
       version: APP_VERSION, // Use the shared version constant
+      skipHydration: true, // Skip initial hydration to prevent SSR/client mismatch
       migrate: (persistedState: unknown, version) => {
         // If migrating from an older version or version doesn't match current
         if (version !== APP_VERSION) {

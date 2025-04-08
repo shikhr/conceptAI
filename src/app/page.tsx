@@ -32,6 +32,7 @@ export default function Dashboard() {
     setActiveChat: setActiveGraphChat,
   } = useGraphStore();
 
+  const [isPendingChat, setIsPendingChat] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -51,17 +52,17 @@ export default function Dashboard() {
     // Add event listener for window resize
     window.addEventListener('resize', checkMobile);
 
-    // Create a new chat if there's no active chat
-    if (!activeChat) {
-      const chatId = addChat('New Chat');
-      setActiveGraphChat(chatId);
+    // Create a new chat if there's no active chat and no pending chat
+    if (!activeChat && !isPendingChat) {
+      // Instead of creating a new chat, set pending chat state
+      setIsPendingChat(true);
     }
 
     // Cleanup
     return () => {
       window.removeEventListener('resize', checkMobile);
     };
-  }, [initTheme, addChat, activeChat, setActiveGraphChat]);
+  }, [initTheme, activeChat, isPendingChat]);
 
   // Independent state for each panel's collapse state
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
@@ -129,6 +130,18 @@ export default function Dashboard() {
 
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
+    // If we're in pending chat mode, create a new chat first
+    if (isPendingChat) {
+      const newChatId = addChat('New Chat');
+      setActiveChat(newChatId);
+      setActiveGraphChat(newChatId);
+      setIsPendingChat(false);
+
+      // Process the message with the new chat
+      processMessage(message, newChatId);
+      return;
+    }
+
     const chatId = activeChat;
     if (!chatId) {
       // If somehow there's no active chat, create one
@@ -199,7 +212,8 @@ export default function Dashboard() {
     }
   };
 
-  const messages = getActiveChatMessages();
+  // Get messages for the active chat, or empty array if in pending chat mode
+  const messages = isPendingChat ? [] : getActiveChatMessages();
 
   return (
     <div
@@ -235,10 +249,16 @@ export default function Dashboard() {
           isCollapsed={isSidebarCollapsed}
           toggleSidebar={toggleSidebar}
           onCreateDraftChat={() => {
-            // Create a new actual chat instead of a draft
-            const chatId = addChat('New Chat');
-            setActiveChat(chatId);
-            setActiveGraphChat(chatId);
+            // Set pending chat mode
+            setIsPendingChat(true);
+            // Set active chat to null
+            setActiveChat(null);
+            // Also set the graph store's active chat to null
+            setActiveGraphChat(null);
+          }}
+          onSelectChat={() => {
+            // Exit pending chat mode when an existing chat is selected
+            setIsPendingChat(false);
           }}
         />
 
