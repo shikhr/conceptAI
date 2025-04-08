@@ -212,7 +212,7 @@ export const useGraphStore = create<GraphState>()(
     {
       name: 'graph-storage', // unique name for localStorage key
       version: APP_VERSION, // Use the shared APP_VERSION constant
-      migrate: (persistedState: any, version): GraphState => {
+      migrate: (persistedState: unknown, version): GraphState => {
         // If migrating from an older version or version doesn't match current
         if (version !== APP_VERSION) {
           // Clear localStorage and start fresh
@@ -221,6 +221,15 @@ export const useGraphStore = create<GraphState>()(
             version: APP_VERSION,
             graphs: {},
             activeChat: null,
+            setActiveChat: () => {},
+            ensureGraphExists: () => {},
+            setGraphData: () => {},
+            onNodesChange: () => {},
+            onEdgesChange: () => {},
+            resetGraph: () => {},
+            getGraphDataString: () => [],
+            getActiveGraph: () => null,
+            deleteGraph: () => {},
           };
         }
         return persistedState as GraphState;

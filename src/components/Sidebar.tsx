@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   ChatBubbleLeftRightIcon,
   PlusIcon,
@@ -27,14 +27,8 @@ export default function Sidebar({
   onCreateDraftChat,
   draftChatId,
 }: SidebarProps) {
-  const {
-    chats,
-    activeChat,
-    addChat,
-    deleteChat,
-    setActiveChat,
-    updateChatTitle,
-  } = useChatStore();
+  const { chats, activeChat, deleteChat, setActiveChat, updateChatTitle } =
+    useChatStore();
   const { setActiveChat: setActiveGraphChat } = useGraphStore();
 
   const [editingChatId, setEditingChatId] = useState<string | null>(null);

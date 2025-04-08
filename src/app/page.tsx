@@ -30,7 +30,6 @@ export default function Dashboard() {
     setGraphData,
     getGraphDataString,
     setActiveChat: setActiveGraphChat,
-    getActiveGraph,
   } = useGraphStore();
 
   // Draft chat ID for temporary session
@@ -133,7 +132,7 @@ export default function Dashboard() {
 
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
-    let chatId = activeChat;
+    const chatId = activeChat;
 
     // If we're using a draft chat, ignore - this should be handled by onConvertDraft
     // This function should only be called for messages in existing chats
@@ -233,7 +232,6 @@ export default function Dashboard() {
   };
 
   const messages = getActiveChatMessages();
-  const activeGraphData = getActiveGraph();
 
   // If there's no active chat, just show the sidebar
   if (!activeChat) {
