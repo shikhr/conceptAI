@@ -1,6 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
+// Create app version constant to use across all stores
+export const APP_VERSION = 6; // Increment this when making breaking changes to data structures
+
 // Define the message interface
 export interface Message {
   role: string;
@@ -19,6 +22,7 @@ export interface Chat {
 // Define the state interface
 interface ChatState {
   // State
+  version: number; // Added version tracking
   chats: Chat[];
   activeChat: string | null;
 
@@ -39,6 +43,7 @@ export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
       // Initial state
+      version: APP_VERSION, // Use the shared version constant
       chats: [],
       activeChat: null,
 
@@ -165,6 +170,20 @@ export const useChatStore = create<ChatState>()(
     }),
     {
       name: 'chat-storage', // unique name for localStorage key
+      version: APP_VERSION, // Use the shared version constant
+      migrate: (persistedState: any, version) => {
+        // If migrating from an older version or version doesn't match current
+        if (version !== APP_VERSION) {
+          // Clear localStorage and start fresh
+          localStorage.removeItem('chat-storage');
+          return {
+            version: APP_VERSION,
+            chats: [],
+            activeChat: null,
+          };
+        }
+        return persistedState as ChatState;
+      },
     }
   )
 );

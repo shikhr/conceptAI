@@ -10,6 +10,7 @@ import {
 } from '@xyflow/react';
 import { AdjacencyList, processGraphData } from '../utils/graph/dataUtils';
 import { getLayoutedElements } from '../utils/graph/layoutUtils';
+import { APP_VERSION } from './chatStore'; // Import the shared version constant
 
 // Define graph data interface
 interface GraphData {
@@ -20,6 +21,7 @@ interface GraphData {
 
 interface GraphState {
   // State
+  version: number; // Added version tracking
   graphs: Record<string, GraphData>;
   activeChat: string | null;
 
@@ -45,6 +47,7 @@ export const useGraphStore = create<GraphState>()(
   persist(
     (set, get) => ({
       // Initial state
+      version: APP_VERSION, // Use the shared version constant
       graphs: {},
       activeChat: null,
 
@@ -208,6 +211,20 @@ export const useGraphStore = create<GraphState>()(
     }),
     {
       name: 'graph-storage', // unique name for localStorage key
+      version: APP_VERSION, // Use the shared APP_VERSION constant
+      migrate: (persistedState: any, version): GraphState => {
+        // If migrating from an older version or version doesn't match current
+        if (version !== APP_VERSION) {
+          // Clear localStorage and start fresh
+          localStorage.removeItem('graph-storage');
+          return {
+            version: APP_VERSION,
+            graphs: {},
+            activeChat: null,
+          };
+        }
+        return persistedState as GraphState;
+      },
     }
   )
 );
