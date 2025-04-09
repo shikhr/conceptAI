@@ -2,15 +2,15 @@
 
 import React, { useState } from 'react';
 import {
-  ChatBubbleLeftRightIcon,
-  PlusIcon,
-  TrashIcon,
-  PencilIcon,
-  ChevronRightIcon,
-  ChevronLeftIcon,
-  CheckIcon,
-  XMarkIcon,
-} from '@heroicons/react/24/outline';
+  FaChevronLeft,
+  FaChevronRight,
+  FaComment,
+  FaPlus,
+  FaRegTrashCan,
+  FaCheck,
+} from 'react-icons/fa6';
+
+import { SlPencil } from 'react-icons/sl';
 import { useChatStore, Chat } from '../stores/chatStore';
 import { useGraphStore } from '../stores/graphStore';
 
@@ -105,7 +105,7 @@ export default function Sidebar({
             className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
             aria-label="Expand sidebar"
           >
-            <ChevronRightIcon
+            <FaChevronRight
               className="h-5 w-5"
               style={{ color: 'var(--card-foreground)' }}
             />
@@ -118,7 +118,7 @@ export default function Sidebar({
             className="w-full p-2 my-2 flex justify-center"
             style={{ color: 'var(--card-foreground)' }}
           >
-            <PlusIcon className="h-5 w-5" />
+            <FaPlus className="h-5 w-5" />
           </button>
 
           <div className="flex-1 overflow-y-auto py-2">
@@ -135,7 +135,7 @@ export default function Sidebar({
                   color: 'var(--card-foreground)',
                 }}
               >
-                <ChatBubbleLeftRightIcon className="h-5 w-5" />
+                <FaComment className="h-5 w-5" />
               </div>
             ))}
           </div>
@@ -167,7 +167,7 @@ export default function Sidebar({
           className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 hidden md:block"
           aria-label="Collapse sidebar"
         >
-          <ChevronLeftIcon
+          <FaChevronLeft
             className="h-5 w-5"
             style={{ color: 'var(--card-foreground)' }}
           />
@@ -180,7 +180,7 @@ export default function Sidebar({
           className="w-full p-2 rounded-md flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-800"
           style={{ color: 'var(--card-foreground)' }}
         >
-          <PlusIcon className="h-5 w-5" />
+          <FaPlus className="h-5 w-5" />
           <span>New Chat</span>
         </button>
       </div>
@@ -221,10 +221,10 @@ export default function Sidebar({
                           type="text"
                           value={editTitle}
                           onChange={(e) => setEditTitle(e.target.value)}
-                          className="flex-1 p-1 rounded text-sm focus:outline-none focus:ring-1"
+                          className="flex-1  p-1 px-2 rounded text-sm focus:outline-none "
                           style={
                             {
-                              backgroundColor: 'var(--background)',
+                              backgroundColor: 'var(--card-background)',
                               color: 'var(--card-foreground)',
                               borderColor: 'var(--card-border)',
                               ['--tw-ring-color' as string]:
@@ -250,14 +250,7 @@ export default function Sidebar({
                           className="p-1 rounded-md"
                           aria-label="Save chat title"
                         >
-                          <CheckIcon className="h-4 w-4 text-green-500" />
-                        </button>
-                        <button
-                          onClick={handleCancelEdit}
-                          className="p-1 rounded-md"
-                          aria-label="Cancel editing"
-                        >
-                          <XMarkIcon className="h-4 w-4 text-red-500" />
+                          <FaCheck className="h-4 w-4 text-green-500" />
                         </button>
                       </div>
                     ) : (
@@ -269,14 +262,14 @@ export default function Sidebar({
                             className="p-1 rounded-md opacity-50 hover:opacity-100"
                             aria-label="Edit chat title"
                           >
-                            <PencilIcon className="h-4 w-4" />
+                            <SlPencil className="h-4 w-4" />
                           </button>
                           <button
                             onClick={(e) => handleDeleteChat(chat.id, e)}
-                            className="p-1 rounded-md opacity-50 hover:opacity-100 hover:text-red-500"
+                            className="p-1 rounded-md opacity-70 hover:opacity-100 hover:text-red-400"
                             aria-label="Delete chat"
                           >
-                            <TrashIcon className="h-4 w-4" />
+                            <FaRegTrashCan className="h-4 w-4 text-red-500" />
                           </button>
                         </div>
                       </div>

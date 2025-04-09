@@ -1,13 +1,16 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
+
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa6';
+
 import {
   Panel,
   PanelGroup,
   PanelResizeHandle,
   ImperativePanelHandle,
 } from 'react-resizable-panels';
+
 import ChatPanel from '@/components/ChatPanel';
 import GraphPanel from '@/components/GraphPanel';
 import TopBar from '@/components/TopBar';
@@ -210,7 +213,7 @@ export default function Dashboard() {
         <div
           className={`fixed md:relative inset-y-0 left-0 h-full z-40 md:z-0 transform transition-transform duration-300 ${
             isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } md:translate-x-0 mt-[calc(3.5rem+2.75rem)] md:mt-0`}
+          } md:translate-x-0`}
         >
           <Sidebar
             isCollapsed={isSidebarCollapsed && window.innerWidth >= 768}
@@ -278,7 +281,7 @@ export default function Dashboard() {
                       : 'Collapse left panel'
                   }
                 >
-                  <ChevronLeftIcon className="h-5 w-5" />
+                  <FaChevronLeft className="h-5 w-5" />
                 </button>
 
                 <div className="h-full p-4">
@@ -323,7 +326,7 @@ export default function Dashboard() {
                       : 'Collapse right panel'
                   }
                 >
-                  <ChevronRightIcon className="h-5 w-5" />
+                  <FaChevronRight className="h-5 w-5" />
                 </button>
 
                 <div className="h-full p-4">

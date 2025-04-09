@@ -3,14 +3,15 @@
 import React, { useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import {
-  MoonIcon,
-  SunIcon,
-  UserCircleIcon,
-  Cog6ToothIcon,
-  Bars3Icon,
-} from '@heroicons/react/24/outline';
+
 import { useThemeStore } from '../stores/themeStore';
+import {
+  HiOutlineSun,
+  HiOutlineMoon,
+  HiOutlineCog8Tooth,
+  HiOutlineUserCircle,
+  HiBars3,
+} from 'react-icons/hi2';
 
 interface TopBarProps {
   children?: ReactNode;
@@ -43,7 +44,7 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             }}
             aria-label="Toggle sidebar"
           >
-            <Bars3Icon className="h-5 w-5" />
+            <HiBars3 className="h-5 w-5" />
           </button>
           <Link
             href="/landing"
@@ -82,9 +83,9 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             }
           >
             {isDarkMode ? (
-              <SunIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <HiOutlineSun className="h-4 w-4 md:h-5 md:w-5" />
             ) : (
-              <MoonIcon className="h-4 w-4 md:h-5 md:w-5" />
+              <HiOutlineMoon className="h-4 w-4 md:h-5 md:w-5" />
             )}
           </button>
 
@@ -96,7 +97,7 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             }}
             aria-label="Settings"
           >
-            <Cog6ToothIcon className="h-4 w-4 md:h-5 md:w-5" />
+            <HiOutlineCog8Tooth className="h-4 w-4 md:h-5 md:w-5" />
           </button>
 
           <button
@@ -107,7 +108,7 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             }}
             aria-label="User profile"
           >
-            <UserCircleIcon className="h-4 w-4 md:h-5 md:w-5" />
+            <HiOutlineUserCircle className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
       </div>

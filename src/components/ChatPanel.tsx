@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid';
+import { PiPaperPlaneRightBold } from 'react-icons/pi';
 import ReactMarkdown from 'react-markdown';
+
 import rehypeRaw from 'rehype-raw';
 import remarkGfm from 'remark-gfm';
 
@@ -154,7 +155,7 @@ export default function ChatPanel({
             } as React.CSSProperties
           }
         >
-          <PaperAirplaneIcon className="h-4 w-4 md:h-5 md:w-5" />
+          <PiPaperPlaneRightBold className="h-4 w-4 md:h-5 md:w-5" />
         </button>
 
         {/* Toggle button - only visible on mobile */}
