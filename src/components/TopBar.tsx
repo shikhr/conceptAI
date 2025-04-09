@@ -11,64 +11,55 @@ import {
   Bars3Icon,
 } from '@heroicons/react/24/outline';
 import { useThemeStore } from '../stores/themeStore';
-import { useMediaQuery } from '../hooks/useMediaQuery';
 
-// Define props interface with optional children
 interface TopBarProps {
   children?: ReactNode;
   onToggleSidebar?: () => void;
 }
 
 export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
-  // Use the theme store
   const { isDarkMode, toggleTheme, initTheme } = useThemeStore();
-  // Check if on mobile
-  const isMobile = useMediaQuery('(max-width: 768px)');
 
-  // Initialize theme on component mount
   useEffect(() => {
     initTheme();
   }, [initTheme]);
 
   return (
     <header
-      className="sticky top-0 z-50 w-full p-3"
+      className="sticky top-0 z-50 w-full p-2 md:p-3"
       style={{
         backgroundColor: 'var(--card-background)',
         borderBottom: '1px solid var(--card-border)',
       }}
     >
       <div className="flex items-center justify-between">
-        {/* Logo/Brand with optional sidebar toggle */}
         <div className="flex items-center space-x-2">
-          {isMobile && onToggleSidebar && (
-            <button
-              onClick={onToggleSidebar}
-              className="p-2 rounded-full transition-colors mr-2"
-              style={{
-                backgroundColor: 'var(--muted-background)',
-                color: 'var(--card-foreground)',
-              }}
-              aria-label="Toggle sidebar"
-            >
-              <Bars3Icon className="h-5 w-5" />
-            </button>
-          )}
+          <button
+            onClick={onToggleSidebar}
+            className="md:hidden p-2 rounded-full transition-colors mr-2"
+            style={{
+              backgroundColor: 'var(--muted-background)',
+              color: 'var(--card-foreground)',
+            }}
+            aria-label="Toggle sidebar"
+          >
+            <Bars3Icon className="h-5 w-5" />
+          </button>
           <Link
             href="/landing"
             className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
           >
-            <div className="w-6 h-6 relative">
+            <div className="w-5 h-5 md:w-6 md:h-6 relative">
               <Image
                 src="/logo.svg"
                 alt="ConceptAI Logo"
                 fill
-                sizes="1.5rem"
+                sizes="(max-width: 768px) 1.25rem, 1.5rem"
                 className="object-contain"
               />
             </div>
             <span
-              className="text-xl font-bold"
+              className="text-lg md:text-xl font-bold"
               style={{ color: 'var(--accent-foreground)' }}
             >
               Concept AI
@@ -76,15 +67,12 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
           </Link>
         </div>
 
-        {/* Controls */}
-        <div className="flex items-center space-x-4">
-          {/* Additional UI elements passed as children */}
+        <div className="flex items-center space-x-2 md:space-x-4">
           {children}
 
-          {/* Dark Mode Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full transition-colors"
+            className="p-1.5 md:p-2 rounded-full transition-colors"
             style={{
               backgroundColor: 'var(--muted-background)',
               color: 'var(--card-foreground)',
@@ -94,34 +82,32 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             }
           >
             {isDarkMode ? (
-              <SunIcon className="h-5 w-5" />
+              <SunIcon className="h-4 w-4 md:h-5 md:w-5" />
             ) : (
-              <MoonIcon className="h-5 w-5" />
+              <MoonIcon className="h-4 w-4 md:h-5 md:w-5" />
             )}
           </button>
 
-          {/* Settings Button */}
           <button
-            className="p-2 rounded-full transition-colors"
+            className="p-1.5 md:p-2 rounded-full transition-colors"
             style={{
               backgroundColor: 'var(--muted-background)',
               color: 'var(--card-foreground)',
             }}
             aria-label="Settings"
           >
-            <Cog6ToothIcon className="h-5 w-5" />
+            <Cog6ToothIcon className="h-4 w-4 md:h-5 md:w-5" />
           </button>
 
-          {/* User Profile */}
           <button
-            className="p-2 rounded-full transition-colors"
+            className="p-1.5 md:p-2 rounded-full transition-colors"
             style={{
               backgroundColor: 'var(--muted-background)',
               color: 'var(--card-foreground)',
             }}
             aria-label="User profile"
           >
-            <UserCircleIcon className="h-5 w-5" />
+            <UserCircleIcon className="h-4 w-4 md:h-5 md:w-5" />
           </button>
         </div>
       </div>

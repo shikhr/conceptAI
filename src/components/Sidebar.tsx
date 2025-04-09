@@ -27,7 +27,6 @@ export default function Sidebar({
   toggleSidebar,
   onCreateDraftChat,
   onSelectChat,
-  isMobile,
 }: SidebarProps) {
   const { chats, activeChat, deleteChat, setActiveChat, updateChatTitle } =
     useChatStore();
@@ -91,7 +90,7 @@ export default function Sidebar({
   if (isCollapsed) {
     return (
       <div
-        className="h-full flex flex-col border-r transition-all duration-300 w-16"
+        className="h-full hidden md:flex flex-col border-r transition-all duration-300 w-16 shrink-0"
         style={{
           backgroundColor: 'var(--card-background)',
           borderColor: 'var(--card-border)',
@@ -147,11 +146,7 @@ export default function Sidebar({
 
   return (
     <div
-      className={`h-full flex flex-col border-r transition-all duration-300 ${
-        typeof window !== 'undefined' && window.innerWidth < 768
-          ? 'fixed top-0 left-0 z-40 w-64 h-full mt-14' // Fixed position for mobile with top margin for the TopBar
-          : 'w-64'
-      }`}
+      className="h-full flex flex-col border-r transition-all duration-300 w-64 shrink-0"
       style={{
         backgroundColor: 'var(--card-background)',
         borderColor: 'var(--card-border)',
@@ -167,19 +162,16 @@ export default function Sidebar({
         >
           Chats
         </div>
-        {/* Only show the toggle button if we're not in mobile view */}
-        {!isMobile && (
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"
-            aria-label="Collapse sidebar"
-          >
-            <ChevronLeftIcon
-              className="h-5 w-5"
-              style={{ color: 'var(--card-foreground)' }}
-            />
-          </button>
-        )}
+        <button
+          onClick={toggleSidebar}
+          className="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700 hidden md:block"
+          aria-label="Collapse sidebar"
+        >
+          <ChevronLeftIcon
+            className="h-5 w-5"
+            style={{ color: 'var(--card-foreground)' }}
+          />
+        </button>
       </div>
 
       <div className="p-3">
@@ -271,7 +263,7 @@ export default function Sidebar({
                     ) : (
                       <div className="flex justify-between items-center">
                         <span className="truncate">{chat.title}</span>
-                        <div className="flex opacity-0 group-hover:opacity-100">
+                        <div className="flex opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={(e) => handleStartEdit(chat, e)}
                             className="p-1 rounded-md opacity-50 hover:opacity-100"

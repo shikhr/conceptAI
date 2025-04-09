@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid';
 import {
   Panel,
@@ -18,6 +18,12 @@ import { useGraphStore } from '@/stores/graphStore';
 
 export default function Dashboard() {
   const { initTheme } = useThemeStore();
+
+  // Initialize theme on mount
+  useEffect(() => {
+    initTheme();
+  }, [initTheme]);
+
   const {
     getActiveChat,
     getActiveChatMessages,
@@ -33,46 +39,9 @@ export default function Dashboard() {
   } = useGraphStore();
 
   const [isPendingChat, setIsPendingChat] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-
-  useEffect(() => {
-    // Initialize theme based on saved preference or system preference
-    initTheme();
-
-    // Check if device is mobile
-    const checkMobile = () => {
-      const isMobileView = window.innerWidth < 768;
-      setIsMobile(isMobileView);
-
-      // When transitioning to mobile view, ensure the sidebar is not collapsed
-      if (isMobileView) {
-        // Set sidebar to expanded state when entering mobile view
-        setIsSidebarCollapsed(false);
-        // But keep it hidden by default on mobile
-        setIsMobileSidebarOpen(false);
-      }
-    };
-
-    // Initial check
-    checkMobile();
-
-    // Add event listener for window resize
-    window.addEventListener('resize', checkMobile);
-
-    // Create a new chat if there's no active chat and no pending chat
-    if (!activeChat && !isPendingChat) {
-      // Instead of creating a new chat, set pending chat state
-      setIsPendingChat(true);
-    }
-
-    // Cleanup
-    return () => {
-      window.removeEventListener('resize', checkMobile);
-    };
-  }, [initTheme, activeChat, isPendingChat]);
 
   // Independent state for each panel's collapse state
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
@@ -82,10 +51,24 @@ export default function Dashboard() {
   const leftPanelRef = useRef<ImperativePanelHandle>(null);
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
 
+  // Ensure sidebar is not collapsed on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768 && isSidebarCollapsed) {
+        setIsSidebarCollapsed(false);
+      }
+    };
+
+    // Initial check
+    handleResize();
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isSidebarCollapsed]);
+
   // Function to process a message with the API
   const processMessage = async (message: string, chatId: string) => {
     try {
-      // Get current messages and graph data
       const messages = getActiveChatMessages();
       const currentGraphStrings = getGraphDataString();
       const currentGraph = currentGraphStrings.join('\n');
@@ -93,7 +76,6 @@ export default function Dashboard() {
       const userMessage = { role: 'user', content: message };
       addMessage(userMessage, chatId);
 
-      // Call API with the current messages and user query
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -108,22 +90,17 @@ export default function Dashboard() {
 
       const data = await response.json();
 
-      // Update chat history with assistant's response
       const assistantMessage = { role: 'assistant', content: data.response };
       addMessage(assistantMessage, chatId);
 
-      // Update graph data only if response contains graph data
       if (data.graph && data.graph.length > 0) {
         setGraphData(data.graph, chatId);
       }
 
-      // If this was the first message, update the chat title
       const currentChat = getActiveChat();
       if (currentChat && currentChat.messages.length <= 2) {
-        // Extract a title from the first message (limited to ~30 chars)
         const titleText =
           message.length > 30 ? message.substring(0, 27) + '...' : message;
-
         useChatStore.getState().updateChatTitle(currentChat.id, titleText);
       }
     } catch (error) {
@@ -140,28 +117,23 @@ export default function Dashboard() {
 
   // Function to handle new messages
   const handleSendMessage = async (message: string) => {
-    // If we're in pending chat mode, create a new chat first
     if (isPendingChat) {
       const newChatId = addChat('New Chat');
       setActiveChat(newChatId);
       setActiveGraphChat(newChatId);
       setIsPendingChat(false);
-
-      // Process the message with the new chat
       processMessage(message, newChatId);
       return;
     }
 
     const chatId = activeChat;
     if (!chatId) {
-      // If somehow there's no active chat, create one
       const newChatId = addChat('New Chat');
       setActiveGraphChat(newChatId);
       processMessage(message, newChatId);
       return;
     }
 
-    // Process the message with API
     processMessage(message, chatId);
   };
 
@@ -180,24 +152,16 @@ export default function Dashboard() {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
-  // Simple toggle functions that only affect their respective panel
+  // Panel toggle functions
   const toggleLeftPanel = () => {
-    if (isMobile) {
-      toggleMobileView();
-      return;
-    }
-
     if (isLeftPanelCollapsed) {
-      // If collapsed, expand it
       leftPanelRef.current?.expand();
       setIsLeftPanelCollapsed(false);
     } else {
-      // If right panel is already collapsed, expand it instead of collapsing this one
       if (isRightPanelCollapsed) {
         rightPanelRef.current?.expand();
         setIsRightPanelCollapsed(false);
       } else {
-        // Otherwise collapse this panel
         leftPanelRef.current?.collapse();
         setIsLeftPanelCollapsed(true);
       }
@@ -205,22 +169,14 @@ export default function Dashboard() {
   };
 
   const toggleRightPanel = () => {
-    if (isMobile) {
-      toggleMobileView();
-      return;
-    }
-
     if (isRightPanelCollapsed) {
-      // If collapsed, expand it
       rightPanelRef.current?.expand();
       setIsRightPanelCollapsed(false);
     } else {
-      // If left panel is already collapsed, expand it instead of collapsing this one
       if (isLeftPanelCollapsed) {
         leftPanelRef.current?.expand();
         setIsLeftPanelCollapsed(false);
       } else {
-        // Otherwise collapse this panel
         rightPanelRef.current?.collapse();
         setIsRightPanelCollapsed(true);
       }
@@ -232,86 +188,71 @@ export default function Dashboard() {
 
   return (
     <div
-      className="h-screen flex flex-col"
+      className="h-screen flex flex-col overflow-hidden"
       style={{ backgroundColor: 'var(--background)' }}
     >
-      {/* Add TopBar component */}
       <TopBar onToggleSidebar={toggleMobileSidebar} />
 
-      {/* Mobile View Toggle */}
-      {isMobile && (
-        <div
-          className="flex justify-center p-2 bg-opacity-80"
-          style={{ backgroundColor: 'var(--card-background)' }}
-        >
-          <button
-            onClick={toggleMobileView}
-            className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
-            style={{
-              backgroundColor: 'var(--accent-foreground)',
-              color: 'white',
-            }}
-          >
-            Switch to {activeView === 'chat' ? 'Graph' : 'Chat'}
-          </button>
-        </div>
-      )}
-
       {/* Main content */}
-      <div className="flex-1 overflow-hidden flex">
-        {/* Mobile sidebar backdrop - only shown when mobile sidebar is open */}
-        {isMobile && isMobileSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-30"
-            onClick={toggleMobileSidebar}
-            aria-label="Close sidebar"
-          />
-        )}
+      <div className="flex-1 overflow-hidden flex relative">
+        {/* Mobile sidebar backdrop */}
+        <div
+          className={`fixed inset-0 bg-black bg-opacity-50 z-30 transition-opacity duration-300 md:hidden ${
+            isMobileSidebarOpen
+              ? 'opacity-100'
+              : 'opacity-0 pointer-events-none'
+          }`}
+          onClick={toggleMobileSidebar}
+          aria-label="Close sidebar"
+        />
 
-        {/* Sidebar - hidden on mobile unless toggled */}
-        {(!isMobile || isMobileSidebarOpen) && (
+        {/* Sidebar container */}
+        <div
+          className={`fixed md:relative inset-y-0 left-0 h-full z-40 md:z-0 transform transition-transform duration-300 ${
+            isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          } md:translate-x-0 mt-[calc(3.5rem+2.75rem)] md:mt-0`}
+        >
           <Sidebar
-            isCollapsed={isSidebarCollapsed}
+            isCollapsed={isSidebarCollapsed && window.innerWidth >= 768}
             toggleSidebar={toggleSidebar}
-            isMobile={isMobile}
             onCreateDraftChat={() => {
-              // Set pending chat mode
               setIsPendingChat(true);
-              // Set active chat to null
               setActiveChat(null);
-              // Also set the graph store's active chat to null
               setActiveGraphChat(null);
-              // Close mobile sidebar after selection
-              if (isMobile) setIsMobileSidebarOpen(false);
+              setIsMobileSidebarOpen(false);
             }}
             onSelectChat={() => {
-              // Exit pending chat mode when an existing chat is selected
               setIsPendingChat(false);
-              // Close mobile sidebar after selection
-              if (isMobile) setIsMobileSidebarOpen(false);
+              setIsMobileSidebarOpen(false);
             }}
           />
-        )}
+        </div>
 
-        {isMobile ? (
-          // Mobile layout - single view at a time
-          <div className="flex-1">
+        {/* Content Area */}
+        <div className="flex-1 min-w-0">
+          {/* Mobile View */}
+          <div className="md:hidden h-full">
             {activeView === 'chat' ? (
               <div className="h-full p-3">
                 <ChatPanel
                   messages={messages}
                   onSendMessage={handleSendMessage}
+                  activeView={activeView}
+                  toggleMobileView={toggleMobileView}
                 />
               </div>
             ) : (
               <div className="h-full p-3">
-                <GraphPanel />
+                <GraphPanel
+                  activeView={activeView}
+                  toggleMobileView={toggleMobileView}
+                />
               </div>
             )}
           </div>
-        ) : (
-          // Desktop layout - panel group with resizable panels
-          <div className="flex-1">
+
+          {/* Desktop View */}
+          <div className="hidden md:block h-full">
             <PanelGroup direction="horizontal" className="h-full">
               {/* Left panel - Chat */}
               <Panel
@@ -319,16 +260,11 @@ export default function Dashboard() {
                 collapsible={true}
                 collapsedSize={0}
                 ref={leftPanelRef}
-                onCollapse={() => {
-                  setIsLeftPanelCollapsed(true);
-                }}
-                onExpand={() => {
-                  setIsLeftPanelCollapsed(false);
-                }}
+                onCollapse={() => setIsLeftPanelCollapsed(true)}
+                onExpand={() => setIsLeftPanelCollapsed(false)}
                 className="relative"
                 minSize={30}
               >
-                {/* Toggle button - always in the same position regardless of collapse state */}
                 <button
                   onClick={toggleLeftPanel}
                   className="absolute top-2 right-0 z-10 p-1 rounded-l-md"
@@ -360,9 +296,7 @@ export default function Dashboard() {
                     ? 'w-0'
                     : 'w-1.5'
                 } transition-colors hover:bg-accent-foreground active:bg-accent-foreground`}
-                style={{
-                  backgroundColor: 'var(--card-border)',
-                }}
+                style={{ backgroundColor: 'var(--card-border)' }}
               />
 
               {/* Right panel - Graph */}
@@ -371,16 +305,11 @@ export default function Dashboard() {
                 collapsible={true}
                 collapsedSize={0}
                 ref={rightPanelRef}
-                onCollapse={() => {
-                  setIsRightPanelCollapsed(true);
-                }}
-                onExpand={() => {
-                  setIsRightPanelCollapsed(false);
-                }}
+                onCollapse={() => setIsRightPanelCollapsed(true)}
+                onExpand={() => setIsRightPanelCollapsed(false)}
                 className="relative"
                 minSize={30}
               >
-                {/* Toggle button - always in the same position regardless of collapse state */}
                 <button
                   onClick={toggleRightPanel}
                   className="absolute top-2 left-0 z-10 p-1 rounded-r-md"
@@ -403,7 +332,7 @@ export default function Dashboard() {
               </Panel>
             </PanelGroup>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
