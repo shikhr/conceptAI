@@ -3,13 +3,13 @@
 import React, { useEffect, ReactNode } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import UserAuthButton from './UserAuthButton';
 
 import { useThemeStore } from '../stores/themeStore';
 import {
   HiOutlineSun,
   HiOutlineMoon,
   HiOutlineCog8Tooth,
-  HiOutlineUserCircle,
   HiBars3,
 } from 'react-icons/hi2';
 
@@ -100,16 +100,7 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             <HiOutlineCog8Tooth className="h-4 w-4 md:h-5 md:w-5" />
           </button>
 
-          <button
-            className="p-1.5 md:p-2 rounded-full transition-colors"
-            style={{
-              backgroundColor: 'var(--muted-background)',
-              color: 'var(--card-foreground)',
-            }}
-            aria-label="User profile"
-          >
-            <HiOutlineUserCircle className="h-4 w-4 md:h-5 md:w-5" />
-          </button>
+          <UserAuthButton />
         </div>
       </div>
     </header>

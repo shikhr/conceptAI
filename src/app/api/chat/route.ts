@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Groq from 'groq-sdk';
+import { withOptionalAuth } from '@/middleware/withOptionalAuth';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -29,9 +30,17 @@ NODE3::NODE2
 NODE1::NODE3
 </Graph>`;
 
-export async function POST(request: NextRequest) {
+// Handler function for the chat API, now using withOptionalAuth
+async function handler(request: NextRequest) {
   try {
     const { messages, graph, query } = await request.json();
+
+    // We can optionally track if this is a guest or authenticated user
+    const isGuest = request.user?.isGuest === true;
+    const userId = request.user?.sub;
+
+    // Optional logging or different behavior based on auth status
+    // console.log(isGuest ? 'Guest user chat' : `Authenticated user chat: ${userId}`);
 
     const queryMessage = `<Graph>\n${graph}\n</Graph>\n<Query>${query}</Query>`;
 
@@ -62,8 +71,6 @@ export async function POST(request: NextRequest) {
 
     const responseContent = completion.choices[0]?.message?.content || '';
 
-    console.log(apiMessages);
-
     // Extract <Response> and <Graph> content
     const responseMatch = responseContent.match(
       /<Response>([\s\S]*?)<\/Response>/
@@ -77,6 +84,9 @@ export async function POST(request: NextRequest) {
       .split('\n')
       .filter((line) => line.includes('::') && !line.startsWith('//'));
 
+    // Messages are now stored in localStorage via chatStore
+    // Removed database save operations since we don't use Prisma for chat messages anymore
+
     return NextResponse.json({
       response: responseText,
       graph: graphLines,
@@ -89,3 +99,7 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+// Apply optional authentication middleware to the handler
+export const POST = (request: NextRequest) =>
+  withOptionalAuth(request, handler);
