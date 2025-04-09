@@ -249,6 +249,7 @@ export default function Dashboard() {
                 <GraphPanel
                   activeView={activeView}
                   toggleMobileView={toggleMobileView}
+                  onSendMessage={handleSendMessage}
                 />
               </div>
             )}
@@ -330,7 +331,7 @@ export default function Dashboard() {
                 </button>
 
                 <div className="h-full p-4">
-                  <GraphPanel />
+                  <GraphPanel onSendMessage={handleSendMessage} />
                 </div>
               </Panel>
             </PanelGroup>

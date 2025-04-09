@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { PiPaperPlaneRightBold } from 'react-icons/pi';
+import { PiChat, PiGraph, PiPaperPlaneRightBold } from 'react-icons/pi';
 import ReactMarkdown from 'react-markdown';
 
 import rehypeRaw from 'rehype-raw';
@@ -141,6 +141,24 @@ export default function ChatPanel({
             } as React.CSSProperties
           }
         />
+        {/* Toggle button - only visible on mobile */}
+        {toggleMobileView && activeView && (
+          <button
+            type="button"
+            onClick={toggleMobileView}
+            className="p-2 md:hidden rounded-lg transition-colors focus:outline-none focus:ring-2"
+            style={
+              {
+                backgroundColor: 'var(--accent-foreground)',
+                color: 'white',
+                '--tw-ring-color': 'var(--accent-foreground)',
+              } as React.CSSProperties
+            }
+            aria-label={`Switch to ${activeView === 'chat' ? 'Graph' : 'Chat'}`}
+          >
+            {activeView === 'chat' ? <PiGraph /> : <PiChat />}
+          </button>
+        )}
         <button
           type="submit"
           disabled={!input.trim()}
@@ -157,25 +175,6 @@ export default function ChatPanel({
         >
           <PiPaperPlaneRightBold className="h-4 w-4 md:h-5 md:w-5" />
         </button>
-
-        {/* Toggle button - only visible on mobile */}
-        {toggleMobileView && activeView && (
-          <button
-            type="button"
-            onClick={toggleMobileView}
-            className="p-2 md:hidden rounded-lg transition-colors focus:outline-none focus:ring-2"
-            style={
-              {
-                backgroundColor: 'var(--accent-foreground)',
-                color: 'white',
-                '--tw-ring-color': 'var(--accent-foreground)',
-              } as React.CSSProperties
-            }
-            aria-label={`Switch to ${activeView === 'chat' ? 'Graph' : 'Chat'}`}
-          >
-            {activeView === 'chat' ? 'Graph' : 'Chat'}
-          </button>
-        )}
       </form>
     </div>
   );
