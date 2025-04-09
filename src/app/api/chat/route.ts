@@ -36,8 +36,8 @@ async function handler(request: NextRequest) {
     const { messages, graph, query } = await request.json();
 
     // We can optionally track if this is a guest or authenticated user
-    const isGuest = request.user?.isGuest === true;
-    const userId = request.user?.sub;
+    // const isGuest = request.user?.isGuest === true;
+    // const userId = request.user?.sub;
 
     // Optional logging or different behavior based on auth status
     // console.log(isGuest ? 'Guest user chat' : `Authenticated user chat: ${userId}`);

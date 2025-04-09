@@ -42,8 +42,12 @@ next-env.d.ts
 
 # Prisma
 /src/generated/prisma
+prisma/*.node
 *.prisma.backup
 
-# Prisma binary files
-prisma/libquery_engine-*
-prisma/*.node
+# Auth and API
+.next-auth
+*.key
+jwt-secret.txt
+sessions/
+auth-debug.log
