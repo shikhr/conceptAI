@@ -236,7 +236,7 @@ export default function Dashboard() {
           {/* Mobile View */}
           <div className="md:hidden h-full">
             {activeView === 'chat' ? (
-              <div className="h-full p-3">
+              <div className="h-full">
                 <ChatPanel
                   messages={messages}
                   onSendMessage={handleSendMessage}
@@ -245,7 +245,7 @@ export default function Dashboard() {
                 />
               </div>
             ) : (
-              <div className="h-full p-3">
+              <div className="h-full">
                 <GraphPanel
                   activeView={activeView}
                   toggleMobileView={toggleMobileView}
@@ -285,7 +285,7 @@ export default function Dashboard() {
                   <FaChevronLeft className="h-5 w-5" />
                 </button>
 
-                <div className="h-full p-4">
+                <div className="h-full p-0">
                   <ChatPanel
                     messages={messages}
                     onSendMessage={handleSendMessage}
@@ -330,7 +330,7 @@ export default function Dashboard() {
                   <FaChevronRight className="h-5 w-5" />
                 </button>
 
-                <div className="h-full p-4">
+                <div className="h-full p-0">
                   <GraphPanel onSendMessage={handleSendMessage} />
                 </div>
               </Panel>

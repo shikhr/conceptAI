@@ -4,8 +4,8 @@ import { ReactFlow, Background, Controls } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { useGraphStore } from '../stores/graphStore';
 import { useThemeStore } from '../stores/themeStore';
-import { PiChat, PiGraph, PiPaperPlaneRightBold } from 'react-icons/pi';
-import { useState, useRef } from 'react';
+import { PiGraph } from 'react-icons/pi';
+import InputBar from './InputBar';
 
 interface GraphPanelProps {
   activeView?: 'chat' | 'graph';
@@ -18,9 +18,6 @@ export default function GraphPanel({
   toggleMobileView,
   onSendMessage,
 }: GraphPanelProps) {
-  const [input, setInput] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-
   // Use the graph store with nodes and edges
   const { getActiveGraph, onNodesChange, onEdgesChange } = useGraphStore();
 
@@ -37,11 +34,9 @@ export default function GraphPanel({
     typeof window !== 'undefined' &&
     window.matchMedia('(max-width: 768px)').matches;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (input.trim() && onSendMessage) {
-      onSendMessage(input);
-      setInput('');
+  const handleSubmit = (message: string) => {
+    if (onSendMessage) {
+      onSendMessage(message);
     }
   };
 
@@ -91,60 +86,19 @@ export default function GraphPanel({
         </div>
       </div>
 
-      {/* Mobile view - Show both toggle button and input form when on graph view */}
+      {/* Mobile view - Show input bar when on graph view */}
       {activeView === 'graph' && toggleMobileView && (
-        <div className="md:hidden mt-2 space-y-2">
-          {/* Input form */}
-          <form onSubmit={handleSubmit} className="flex items-center gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question..."
-              className="flex-1 p-2 text-sm rounded-lg focus:outline-none focus:ring-2"
-              style={
-                {
-                  backgroundColor: 'var(--card-background)',
-                  color: 'var(--card-foreground)',
-                  borderColor: 'var(--card-border)',
-                  '--tw-ring-color': 'var(--accent-foreground)',
-                } as React.CSSProperties
-              }
-            />
-            {/* Toggle button */}
-            <button
-              type="button"
-              onClick={toggleMobileView}
-              className="p-2 rounded-lg transition-colors focus:outline-none focus:ring-2"
-              style={
-                {
-                  backgroundColor: 'var(--accent-foreground)',
-                  color: 'white',
-                  '--tw-ring-color': 'var(--accent-foreground)',
-                } as React.CSSProperties
-              }
-              aria-label="Switch to Chat"
-            >
-              <PiChat />
-            </button>
-            <button
-              type="submit"
-              disabled={!input.trim()}
-              className="p-2 rounded-lg transition-colors focus:outline-none focus:ring-2"
-              style={
-                {
-                  backgroundColor: !input.trim()
-                    ? 'var(--accent-background)'
-                    : 'var(--accent-foreground)',
-                  color: !input.trim() ? 'var(--muted-foreground)' : 'white',
-                  '--tw-ring-color': 'var(--accent-foreground)',
-                } as React.CSSProperties
-              }
-            >
-              <PiPaperPlaneRightBold className="h-4 w-4" />
-            </button>
-          </form>
+        <div
+          className="md:hidden pt-2"
+          style={{
+            backgroundColor: 'var(--card-background)',
+          }}
+        >
+          <InputBar
+            onSubmit={handleSubmit}
+            toggleMobileView={toggleMobileView}
+            activeView={activeView}
+          />
         </div>
       )}
 

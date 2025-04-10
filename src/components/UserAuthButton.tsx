@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -8,7 +8,29 @@ import Image from 'next/image';
 export default function UserAuthButton() {
   const { user, isAuthenticated, isLoading, signOut } = useAuth();
   const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setShowDropdown(false);
+      }
+    }
+
+    // Only add the event listener if the dropdown is open
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/' });
@@ -29,7 +51,8 @@ export default function UserAuthButton() {
     return (
       <button
         onClick={handleSignIn}
-        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm transition-colors"
+        className="px-4 py-2 text-white rounded-md text-sm transition-colors"
+        style={{ backgroundColor: 'var(--accent-foreground)' }}
       >
         Sign in
       </button>
@@ -37,7 +60,7 @@ export default function UserAuthButton() {
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         className="flex items-center focus:outline-none"
         onClick={() => setShowDropdown(!showDropdown)}
@@ -54,7 +77,10 @@ export default function UserAuthButton() {
               />
             </div>
           ) : (
-            <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-white">
+            <div
+              className="h-8 w-8 rounded-full flex items-center justify-center text-white"
+              style={{ backgroundColor: 'var(--accent-foreground)' }}
+            >
               {user?.name?.charAt(0) || 'U'}
             </div>
           )}
@@ -62,16 +88,43 @@ export default function UserAuthButton() {
       </button>
 
       {showDropdown && (
-        <div className="absolute right-0 mt-2 w-48 py-2 bg-white dark:bg-gray-800 rounded-md shadow-lg z-50 border dark:border-gray-700">
-          <div className="px-4 py-2 border-b dark:border-gray-700">
-            <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+        <div
+          className="absolute right-0 mt-2 w-48 py-2 rounded-md shadow-lg z-50 border"
+          style={{
+            backgroundColor: 'var(--card-background)',
+            borderColor: 'var(--card-border)',
+          }}
+        >
+          <div
+            className="px-4 py-2 border-b"
+            style={{ borderColor: 'var(--card-border)' }}
+          >
+            <p
+              className="text-sm font-medium"
+              style={{ color: 'var(--card-foreground)' }}
+            >
+              {user?.name}
+            </p>
+            <p
+              className="text-xs truncate"
+              style={{ color: 'var(--muted-foreground)' }}
+            >
               {user?.email}
             </p>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="w-full text-left px-4 py-2 text-sm hover:bg-opacity-50 transition-colors"
+            style={{
+              color: 'var(--card-foreground)',
+            }}
+            onMouseOver={(e) =>
+              (e.currentTarget.style.backgroundColor =
+                'var(--muted-background)')
+            }
+            onMouseOut={(e) =>
+              (e.currentTarget.style.backgroundColor = 'transparent')
+            }
           >
             Sign out
           </button>
