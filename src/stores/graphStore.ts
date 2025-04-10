@@ -145,7 +145,9 @@ export const useGraphStore = create<GraphState>()(
         const result: string[] = [];
 
         Object.entries(adjacencyList).forEach(([sourceNode, connections]) => {
+          // sourceNode is already formatted as uppercase with underscores
           connections.forEach((targetNode) => {
+            // targetNode is already formatted as uppercase with underscores
             result.push(`${sourceNode}::${targetNode}`);
           });
         });

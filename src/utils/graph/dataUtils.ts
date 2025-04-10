@@ -7,13 +7,32 @@ export interface AdjacencyList {
 }
 
 /**
+ * Formats node names to follow standardized format:
+ * - All uppercase letters
+ * - Words separated by underscores
+ */
+export const formatNodeName = (name: string): string => {
+  return name.trim().toUpperCase().replace(/\s+/g, '_');
+};
+
+/**
  * Converts raw graph data strings into an adjacency list representation
+ * Handles bidirectional edges by ensuring relationships are symmetrical
  */
 export const buildAdjacencyList = (data: string[]): AdjacencyList => {
   const adjacencyList: AdjacencyList = {};
 
+  // First pass: build the basic adjacency list
   data.forEach((line) => {
-    const [source, target] = line.split('::').map((node) => node.trim());
+    // Extract source and target, then format them
+    const [sourceRaw, targetRaw] = line.split('::').map((node) => node.trim());
+    const source = formatNodeName(sourceRaw);
+    const target = formatNodeName(targetRaw);
+
+    // Skip self-loops
+    if (source === target) {
+      return;
+    }
 
     if (!adjacencyList[source]) {
       adjacencyList[source] = [];
@@ -24,10 +43,21 @@ export const buildAdjacencyList = (data: string[]): AdjacencyList => {
       adjacencyList[source].push(target);
     }
 
-    // Ensure target also exists in the adjacency list (even if it has no outgoing edges)
+    // Ensure target also exists in the adjacency list
     if (!adjacencyList[target]) {
       adjacencyList[target] = [];
     }
+  });
+
+  // Second pass: ensure bidirectional connections
+  // If A→B exists, make sure B→A also exists
+  Object.entries(adjacencyList).forEach(([source, targets]) => {
+    targets.forEach((target) => {
+      // If this is a one-way connection, make it bidirectional
+      if (!adjacencyList[target].includes(source)) {
+        adjacencyList[target].push(source);
+      }
+    });
   });
 
   return adjacencyList;
@@ -35,6 +65,7 @@ export const buildAdjacencyList = (data: string[]): AdjacencyList => {
 
 /**
  * Merges a new adjacency list with an existing one
+ * Maintains bidirectional connections when merging
  */
 export const mergeAdjacencyLists = (
   existingList: AdjacencyList,
@@ -51,6 +82,13 @@ export const mergeAdjacencyLists = (
       connections.forEach((connection) => {
         if (!mergedList[nodeId].includes(connection)) {
           mergedList[nodeId].push(connection);
+
+          // Maintain bidirectional relationship
+          if (!mergedList[connection]) {
+            mergedList[connection] = [nodeId];
+          } else if (!mergedList[connection].includes(nodeId)) {
+            mergedList[connection].push(nodeId);
+          }
         }
       });
     }
@@ -61,6 +99,7 @@ export const mergeAdjacencyLists = (
 
 /**
  * Processes graph data and converts it to ReactFlow nodes and edges
+ * Prevents duplicate edges from being created for bidirectional connections
  */
 export const processGraphData = (
   data: string[],
@@ -100,6 +139,8 @@ export const processGraphData = (
 
   const nodesArray: Node[] = [];
   const edgesArray: Edge[] = [];
+  // Track processed edges to avoid duplicates
+  const processedEdges = new Set<string>();
 
   // Process all nodes from the merged adjacency list
   Object.keys(mergedAdjacencyList).forEach((nodeName) => {
@@ -122,19 +163,40 @@ export const processGraphData = (
 
     // Process edges for this node
     mergedAdjacencyList[nodeName].forEach((targetName) => {
-      const edgeId = `edge-${nodeName}-${targetName}`;
+      // Create a canonical edge ID that's the same regardless of direction
+      // by sorting the node names alphabetically
+      const nodeNames = [nodeName, targetName].sort();
+      const canonicalEdgeId = `edge-${nodeNames[0]}-${nodeNames[1]}`;
+
+      // Skip if we've already processed this edge
+      if (processedEdges.has(canonicalEdgeId)) {
+        return;
+      }
+
       const targetId = `node-${targetName}`;
 
-      if (existingEdgesMap.has(edgeId)) {
-        // Keep existing edge
-        edgesArray.push(existingEdgesMap.get(edgeId)!);
+      // Mark this edge as processed
+      processedEdges.add(canonicalEdgeId);
+
+      // Use the existing edge if it exists (with either direction)
+      const standardEdgeId = `edge-${nodeName}-${targetName}`;
+      const reverseEdgeId = `edge-${targetName}-${nodeName}`;
+
+      if (existingEdgesMap.has(canonicalEdgeId)) {
+        edgesArray.push(existingEdgesMap.get(canonicalEdgeId)!);
+      } else if (existingEdgesMap.has(standardEdgeId)) {
+        edgesArray.push(existingEdgesMap.get(standardEdgeId)!);
+      } else if (existingEdgesMap.has(reverseEdgeId)) {
+        edgesArray.push(existingEdgesMap.get(reverseEdgeId)!);
       } else {
-        // Create new edge
+        // Create new edge using the canonical ID
         edgesArray.push({
-          id: edgeId,
+          id: canonicalEdgeId,
           source: nodeId,
           target: targetId,
           animated: true,
+          // Use the bidirectional arrow type if available in your flow library
+          // type: 'bidirectional',
         });
       }
     });

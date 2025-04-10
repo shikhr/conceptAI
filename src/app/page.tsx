@@ -97,6 +97,8 @@ export default function Dashboard() {
       addMessage(assistantMessage, chatId);
 
       if (data.graph && data.graph.length > 0) {
+        // We'll let our formatNodeName function handle the formatting
+        // within the buildAdjacencyList function in dataUtils.ts
         setGraphData(data.graph, chatId);
       }
 
