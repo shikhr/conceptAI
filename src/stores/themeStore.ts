@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { ColorMode } from '@xyflow/react';
 import { persist } from 'zustand/middleware';
-import { APP_VERSION } from './chatStore';
+import { APP_VERSION } from '../lib/constants'; // Import the shared version constant
 
 interface ThemeState {
   // State

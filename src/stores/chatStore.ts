@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-// Create app version constant to use across all stores
-export const APP_VERSION = 6; // Increment this when making breaking changes to data structures
+import { useGraphStore } from './graphStore'; // Import the graph store
+import { APP_VERSION } from '../lib/constants'; // Import the shared version constant
 
 // Define the message interface
 export interface Message {
@@ -78,6 +77,12 @@ export const useChatStore = create<ChatState>()(
               : null
             : activeChat;
 
+        // Also delete the corresponding graph
+        useGraphStore.getState().deleteGraph(chatId);
+
+        // Update the active chat in the graph store as well
+        useGraphStore.getState().setActiveChat(newActiveChat);
+
         set({
           chats: updatedChats,
           activeChat: newActiveChat,
@@ -85,6 +90,9 @@ export const useChatStore = create<ChatState>()(
       },
 
       setActiveChat: (chatId: string | null) => {
+        // Also update the active chat in the graph store
+        useGraphStore.getState().setActiveChat(chatId);
+
         set({ activeChat: chatId });
       },
 

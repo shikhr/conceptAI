@@ -10,7 +10,7 @@ import {
 } from '@xyflow/react';
 import { AdjacencyList, processGraphData } from '../utils/graph/dataUtils';
 import { getLayoutedElements } from '../utils/graph/layoutUtils';
-import { APP_VERSION } from './chatStore'; // Import the shared version constant
+import { APP_VERSION } from '../lib/constants'; // Import the shared version constant
 
 // Define graph data interface
 interface GraphData {
