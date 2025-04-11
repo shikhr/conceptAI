@@ -15,6 +15,7 @@ import ChatPanel from '@/components/ChatPanel';
 import GraphPanel from '@/components/GraphPanel';
 import TopBar from '@/components/TopBar';
 import Sidebar from '@/components/Sidebar';
+import Toast from '@/components/Toast';
 import { useThemeStore } from '@/stores/themeStore';
 import { useChatStore } from '@/stores/chatStore';
 import { useGraphStore } from '@/stores/graphStore';
@@ -42,9 +43,17 @@ export default function Dashboard() {
   } = useGraphStore();
 
   const [isPendingChat, setIsPendingChat] = useState(false);
+  const [isProcessingMessage, setIsProcessingMessage] = useState(false); // New state for API call tracking
   const [activeView, setActiveView] = useState<'chat' | 'graph'>('chat');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Toast notification state
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastType, setToastType] = useState<
+    'success' | 'error' | 'warning' | 'info'
+  >('error');
+  const [isToastVisible, setIsToastVisible] = useState(false);
 
   // Independent state for each panel's collapse state
   const [isLeftPanelCollapsed, setIsLeftPanelCollapsed] = useState(false);
@@ -53,6 +62,21 @@ export default function Dashboard() {
   // References to Panel components
   const leftPanelRef = useRef<ImperativePanelHandle>(null);
   const rightPanelRef = useRef<ImperativePanelHandle>(null);
+
+  // Function to show toast notification
+  const showToast = (
+    message: string,
+    type: 'success' | 'error' | 'warning' | 'info' = 'error'
+  ) => {
+    setToastMessage(message);
+    setToastType(type);
+    setIsToastVisible(true);
+  };
+
+  // Function to hide toast
+  const hideToast = () => {
+    setIsToastVisible(false);
+  };
 
   // Ensure sidebar is not collapsed on mobile
   useEffect(() => {
@@ -79,6 +103,8 @@ export default function Dashboard() {
       const userMessage = { role: 'user', content: message };
       addMessage(userMessage, chatId);
 
+      setIsProcessingMessage(true); // Set processing state while waiting for response
+
       const response = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -88,6 +114,26 @@ export default function Dashboard() {
           query: message,
         }),
       });
+
+      setIsProcessingMessage(false); // Clear processing state after receiving response
+
+      if (response.status === 429) {
+        // Rate limit exceeded - show toast notification using React
+        const errorData = await response.json();
+        console.log('Rate limit exceeded:', errorData);
+
+        // Show toast notification
+        showToast('Too many requests, try again later', 'error');
+
+        // Remove the user's message that triggered the rate limit
+        const currentChat = getActiveChat();
+        if (currentChat) {
+          const updatedMessages = currentChat.messages.slice(0, -1); // Remove the last message
+          useChatStore.getState().setMessages(updatedMessages, chatId);
+        }
+
+        return; // Don't add any error message to the chat history
+      }
 
       if (!response.ok) throw new Error('Failed to get response');
 
@@ -110,6 +156,7 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error:', error);
+      setIsProcessingMessage(false); // Ensure processing state is cleared even on error
       addMessage(
         {
           role: 'assistant',
@@ -188,8 +235,9 @@ export default function Dashboard() {
     }
   };
 
-  // Get messages for the active chat, or empty array if in pending chat mode
-  const messages = isPendingChat ? [] : getActiveChatMessages();
+  // Get messages for the active chat, or empty array if in pending chat mode (but not during API call)
+  const messages =
+    isPendingChat && !isProcessingMessage ? [] : getActiveChatMessages();
 
   return (
     <div
@@ -197,6 +245,14 @@ export default function Dashboard() {
       style={{ backgroundColor: 'var(--background)' }}
     >
       <TopBar onToggleSidebar={toggleMobileSidebar} />
+
+      {/* Toast notification */}
+      <Toast
+        message={toastMessage}
+        type={toastType}
+        isVisible={isToastVisible}
+        onClose={hideToast}
+      />
 
       {/* Main content */}
       <div className="flex-1 overflow-hidden flex relative">

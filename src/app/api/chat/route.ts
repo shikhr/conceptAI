@@ -1,33 +1,84 @@
 import { NextRequest, NextResponse } from 'next/server';
+
 import Groq from 'groq-sdk';
 import { withOptionalAuth } from '@/middleware/withOptionalAuth';
+import { Redis } from '@upstash/redis';
+import { Ratelimit } from '@upstash/ratelimit';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+// Initialize Redis client
+const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL || '',
+  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
+});
+
+// Create separate rate limiters for authenticated users and guests
+// Guest rate limiter: 10 requests per minute
+const guestRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(10, '60 s'),
+  analytics: true, // Enable analytics so you can track usage in Upstash console
+  prefix: 'ratelimit:guest:minute',
+});
+
+// Guest daily rate limiter: 100 requests per day
+const guestDailyRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(100, '86400 s'), // 24 hours in seconds
+  analytics: true,
+  prefix: 'ratelimit:guest:daily',
+});
+
+// Authenticated user rate limiter: 20 requests per minute
+const authUserRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(20, '60 s'),
+  analytics: true,
+  prefix: 'ratelimit:auth:minute',
+});
+
+// Authenticated user daily rate limiter: 500 requests per day
+const authUserDailyRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(500, '86400 s'), // 24 hours in seconds
+  analytics: true,
+  prefix: 'ratelimit:auth:daily',
+});
+
 // Static system message with dummy data only
-const STATIC_SYSTEM_MESSAGE = `You are a teaching assistant. Keep track of everything the user has learned. Create a flow of topics in a graph network and links (heirarchy, taxonomy) between them that the user wants to study. Be flexible and accurate and simple in your explanations. Keep all output within <Response> and <Graph> tags. Follow the below format in all responses strictly!
+const STATIC_SYSTEM_MESSAGE = `You are a teaching assistant designed to help users learn by building a structured concept graph. 
+Track everything the user has learned and organize topics into a dynamic, evolving graph network. 
+This graph captures relationships such as hierarchy, taxonomy, or prerequisite links between concepts.
 
-User Input consists of : 
+Your responsibilities:
+- Explain topics clearly, like a good professor.
+- Add newly discussed concepts as nodes in a graph.
+- Show connections between concepts using directional edges (e.g., PREREQUISITE::CONCEPT).
+- Update and output the graph after each user query.
+- Keep all responses strictly within the required <Response> and <Graph> tags.
 
-<Graph> // current graph information
+Input Format:
+
+<Graph> // current concept graph (nodes and edges)
 NODE1::NODE2
 NODE3::NODE2
 </Graph>
 
-<Query> // user query
+<Query> // the user's question or learning request
 Explain the concept of...
 </Query>
 
-Output format consists of : 
+Output Format:
 
-<Response> //explain the concepts and other stuff
-Introduction to the concept
+<Response> // Your explanation goes here
+Provide a clear, structured explanation of the concept, starting with an introduction, followed by elaboration, examples, and any important notes.
 </Response>
 
-<Graph> // give a graph with nodes denoting new concepts and edges denoting links between them.
-NODE1::NODE2
-NODE3::NODE2
-NODE1::NODE3
+<Graph> // Updated graph with new concepts and their links
+NEW_NODE1::EXISTING_NODE
+NEW_NODE2::NEW_NODE1
+EXISTING_NODE::NEW_NODE2
 </Graph>`;
 
 // Handler function for the chat API, now using withOptionalAuth
@@ -35,12 +86,52 @@ async function handler(request: NextRequest) {
   try {
     const { messages, graph, query } = await request.json();
 
-    // We can optionally track if this is a guest or authenticated user
-    // const isGuest = request.user?.isGuest === true;
-    // const userId = request.user?.sub;
+    // Determine the identifier for rate limiting
+    const user = request.user;
 
-    // Optional logging or different behavior based on auth status
-    // console.log(isGuest ? 'Guest user chat' : `Authenticated user chat: ${userId}`);
+    // Get IP from headers only since ip property is no longer available in NextRequest
+    const ip = request.headers.get('x-forwarded-for') || 'anonymous';
+
+    const identifier = user?.sub || `ip-${ip}`;
+    const isAuthenticated = user?.sub ? true : false;
+
+    // Select appropriate rate limiters based on authentication status
+    const minuteRatelimiter = isAuthenticated
+      ? authUserRatelimit
+      : guestRatelimit;
+    const dailyRatelimiter = isAuthenticated
+      ? authUserDailyRatelimit
+      : guestDailyRatelimit;
+
+    // Apply minute rate limiting
+    const minuteLimit = await minuteRatelimiter.limit(identifier);
+
+    // Apply daily rate limiting
+    const dailyLimit = await dailyRatelimiter.limit(identifier);
+
+    // If either rate limit is exceeded, return 429 Too Many Requests
+    if (!minuteLimit.success || !dailyLimit.success) {
+      // Determine which limit was exceeded for the error message
+      const exceededLimit = !minuteLimit.success ? minuteLimit : dailyLimit;
+      const timeFrame = !minuteLimit.success ? 'minute' : 'day';
+
+      return NextResponse.json(
+        {
+          error: `Rate limit exceeded for ${timeFrame}`,
+          limit: exceededLimit.limit,
+          remaining: exceededLimit.remaining,
+          reset: new Date(exceededLimit.reset).toISOString(),
+        },
+        {
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': exceededLimit.limit.toString(),
+            'X-RateLimit-Remaining': exceededLimit.remaining.toString(),
+            'X-RateLimit-Reset': exceededLimit.reset.toString(),
+          },
+        }
+      );
+    }
 
     const queryMessage = `<Graph>\n${graph}\n</Graph>\n<Query>${query}</Query>`;
 
@@ -87,10 +178,20 @@ async function handler(request: NextRequest) {
     // Messages are now stored in localStorage via chatStore
     // Removed database save operations since we don't use Prisma for chat messages anymore
 
-    return NextResponse.json({
-      response: responseText,
-      graph: graphLines,
-    });
+    // Include rate limit headers in the response
+    return NextResponse.json(
+      {
+        response: responseText,
+        graph: graphLines,
+      },
+      {
+        headers: {
+          'X-RateLimit-Limit': minuteLimit.limit.toString(),
+          'X-RateLimit-Remaining': minuteLimit.remaining.toString(),
+          'X-RateLimit-Reset': minuteLimit.reset.toString(),
+        },
+      }
+    );
   } catch (error) {
     console.error('Error processing chat request:', error);
     return NextResponse.json(

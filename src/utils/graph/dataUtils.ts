@@ -196,7 +196,7 @@ export const processGraphData = (
           target: targetId,
           animated: true,
           // Use the bidirectional arrow type if available in your flow library
-          type: 'bidirectional',
+          // type: 'bidirectional',
         });
       }
     });
