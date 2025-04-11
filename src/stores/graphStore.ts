@@ -143,12 +143,18 @@ export const useGraphStore = create<GraphState>()(
 
         const { adjacencyList } = graph;
         const result: string[] = [];
+        const processedPairs = new Set<string>();
 
         Object.entries(adjacencyList).forEach(([sourceNode, connections]) => {
-          // sourceNode is already formatted as uppercase with underscores
           connections.forEach((targetNode) => {
-            // targetNode is already formatted as uppercase with underscores
-            result.push(`${sourceNode}::${targetNode}`);
+            // Create a canonical form of the relationship (smaller node first, then larger node)
+            const pair = [sourceNode, targetNode].sort().join('::');
+
+            // Only add this relationship if we haven't processed it yet
+            if (!processedPairs.has(pair)) {
+              processedPairs.add(pair);
+              result.push(`${sourceNode}::${targetNode}`);
+            }
           });
         });
 

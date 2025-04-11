@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   FaChevronLeft,
   FaChevronRight,
-  FaComment,
+  FaRegComment,
   FaPlus,
   FaRegTrashCan,
   FaCheck,
@@ -165,7 +165,7 @@ export default function Sidebar({
                   color: 'var(--card-foreground)',
                 }}
               >
-                <FaComment className="h-5 w-5" />
+                <FaRegComment className="h-5 w-5" />
               </div>
             ))}
           </div>
