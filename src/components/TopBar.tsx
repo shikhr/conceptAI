@@ -6,12 +6,7 @@ import Image from 'next/image';
 import UserAuthButton from './UserAuthButton';
 
 import { useThemeStore } from '../stores/themeStore';
-import {
-  HiOutlineSun,
-  HiOutlineMoon,
-  HiOutlineCog8Tooth,
-  HiBars3,
-} from 'react-icons/hi2';
+import { HiOutlineSun, HiOutlineMoon, HiBars3 } from 'react-icons/hi2';
 
 interface TopBarProps {
   children?: ReactNode;
@@ -87,17 +82,6 @@ export default function TopBar({ children, onToggleSidebar }: TopBarProps) {
             ) : (
               <HiOutlineMoon className="h-4 w-4 md:h-5 md:w-5" />
             )}
-          </button>
-
-          <button
-            className="p-1.5 md:p-2 rounded-full transition-colors"
-            style={{
-              backgroundColor: 'var(--muted-background)',
-              color: 'var(--card-foreground)',
-            }}
-            aria-label="Settings"
-          >
-            <HiOutlineCog8Tooth className="h-4 w-4 md:h-5 md:w-5" />
           </button>
 
           <UserAuthButton />

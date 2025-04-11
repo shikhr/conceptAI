@@ -154,6 +154,13 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Handle-hover effect to show collapse buttons when hovering the resize handle */
+.handle-hovered:hover ~ .relative button.resize-handle-hover,
+.handle-hovered:hover + .relative button.resize-handle-hover,
+.handle-hovered:hover + panel .resize-handle-hover {
+  opacity: 1 !important;
+}
+
 /* Cursor styles for panel resizing */
 .resize-cursor {
   cursor: col-resize !important;

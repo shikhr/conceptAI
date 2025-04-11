@@ -327,12 +327,15 @@ export default function Dashboard() {
                 className="relative"
                 minSize={30}
               >
+                {/* Left panel collapse button - only visible when a panel is collapsed */}
                 <button
                   onClick={toggleLeftPanel}
-                  className="absolute top-2 right-0 z-10 p-1 rounded-l-md"
+                  className={`absolute top-2 right-0 z-10 p-1 rounded-l-md `}
                   style={{
                     backgroundColor: 'var(--accent-foreground)',
                     color: 'white',
+                    opacity:
+                      isLeftPanelCollapsed || isRightPanelCollapsed ? 1 : 0,
                   }}
                   aria-label={
                     isLeftPanelCollapsed
@@ -372,12 +375,15 @@ export default function Dashboard() {
                 className="relative"
                 minSize={30}
               >
+                {/* Right panel collapse button - only visible when a panel is collapsed */}
                 <button
                   onClick={toggleRightPanel}
-                  className="absolute top-2 left-0 z-10 p-1 rounded-r-md"
+                  className={`absolute top-2 left-0 z-10 p-1 rounded-r-md `}
                   style={{
                     backgroundColor: 'var(--accent-foreground)',
                     color: 'white',
+                    opacity:
+                      isLeftPanelCollapsed || isRightPanelCollapsed ? 1 : 0,
                   }}
                   aria-label={
                     isRightPanelCollapsed
