@@ -57,6 +57,8 @@ Your responsibilities:
 - Show connections between concepts using directional edges (e.g., PREREQUISITE::CONCEPT).
 - Update and output the graph after each user query.
 - Keep all responses strictly within the required <Response> and <Graph> tags.
+- Do not give empty responses or any other text outside the tags.
+- Do not provide a graph if the content of response is not graph oriented.
 
 Input Format:
 
@@ -146,9 +148,20 @@ async function handler(request: NextRequest) {
         role: 'system',
         content: STATIC_SYSTEM_MESSAGE,
       },
-      ...messages.filter(
-        (msg: { role: string; content: string }) => msg.role !== 'system'
-      ),
+      ...messages
+        .filter(
+          (msg: { role: string; content: string }) => msg.role !== 'system'
+        )
+        .map((msg: { role: string; content: string }) => {
+          // Ensure assistant messages are wrapped in <Response> tags if not already
+          if (msg.role === 'assistant' && !msg.content.includes('<Response>')) {
+            return {
+              ...msg,
+              content: `<Response>${msg.content}</Response>`,
+            };
+          }
+          return msg;
+        }),
       userQueryMessage,
     ];
 
@@ -174,6 +187,8 @@ async function handler(request: NextRequest) {
     const graphLines = graphText
       .split('\n')
       .filter((line) => line.includes('::') && !line.startsWith('//'));
+
+    console.log(responseContent);
 
     // Messages are now stored in localStorage via chatStore
     // Removed database save operations since we don't use Prisma for chat messages anymore

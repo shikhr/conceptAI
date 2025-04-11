@@ -177,6 +177,7 @@ body {
   color: var(--node-color);
   border-color: var(--node-border);
   box-shadow: 0 2px 4px var(--node-shadow);
+  width: fit-content !important;
 }
 
 .react-flow__node.selected,
