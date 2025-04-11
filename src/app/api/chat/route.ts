@@ -7,6 +7,8 @@ import { Ratelimit } from '@upstash/ratelimit';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
+const model_name = 'llama-3.3-70b-versatile';
+
 // Initialize Redis client
 const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL || '',
@@ -168,7 +170,7 @@ async function handler(request: NextRequest) {
     // Call Groq API
     const completion = await groq.chat.completions.create({
       messages: apiMessages,
-      model: 'meta-llama/llama-4-scout-17b-16e-instruct', // Use appropriate model
+      model: model_name,
       temperature: 0.4,
       max_tokens: 2048,
     });

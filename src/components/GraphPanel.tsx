@@ -58,13 +58,13 @@ export default function GraphPanel({
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
-                fitView
+                defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
                 proOptions={{ hideAttribution: true }}
                 colorMode={isDarkMode ? 'dark' : 'light'}
                 nodesFocusable={!isMobileMedia}
                 edgesFocusable={!isMobileMedia}
-                minZoom={isMobileMedia ? 0.5 : 0.75}
-                maxZoom={isMobileMedia ? 2 : 4}
+                minZoom={0.1}
+                maxZoom={isMobileMedia ? 3 : 4}
               >
                 <Controls
                   showInteractive={!isMobileMedia}
