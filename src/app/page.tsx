@@ -241,7 +241,7 @@ export default function Dashboard() {
 
   return (
     <div
-      className="h-screen flex flex-col overflow-hidden"
+      className="h-dvh flex flex-col overflow-hidden"
       style={{ backgroundColor: 'var(--background)' }}
     >
       <TopBar onToggleSidebar={toggleMobileSidebar} />
